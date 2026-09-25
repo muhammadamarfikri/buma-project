@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BUMA - Debt Collection Monitoring & Reminder Dispatch System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            gold: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom Scrollbars and Animations */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #f59e0b;
+    }
+
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+      }
+    }
+
+    .pulse-glow {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes slideInUp {
+      from {
+        transform: translateY(16px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .animate-slide-up {
+      animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+
+<body
+  class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Brand & System Title -->
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shadow-sm border border-amber-400">
+            <i data-lucide="shield-check" class="w-6 h-6 font-bold"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xl font-extrabold tracking-tight text-slate-900">BUMA</span>
+              <span
+                class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">COLLECTION
+                CENTER</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium hidden sm:block">Sistem Pemantauan Koleksi & Komitmen Penagihan
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Header Actions (Search & Notification Bell & User Profile) -->
+        <div class="flex items-center space-x-3">
+
+          <!-- System Status Indicator -->
+          <div
+            class="hidden lg:flex items-center space-x-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-glow"></span>
+            <span class="text-emerald-800 font-semibold" id="currentDateDisplay">Sistem Aktif</span>
+          </div>
+
+          <!-- Notification Bell Icon Button -->
+          <button
+            class="p-2 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl border border-slate-200 shadow-xs transition-colors relative"
+            title="Notifikasi">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500"></span>
+          </button>
+
+          <!-- Refresh Action Button -->
+          <button id="refreshBtn"
+            class="p-2 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 rounded-xl border border-slate-200 shadow-xs transition-colors"
+            title="Refresh Data">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+
+          <!-- User Profile Avatar -->
+          <div class="flex items-center space-x-3 pl-3 border-l border-slate-200">
+            <div
+              class="w-9 h-9 rounded-full bg-amber-100 text-amber-900 font-extrabold flex items-center justify-center text-sm border-2 border-amber-400 shadow-xs">
+              RM
+            </div>
+            <div class="hidden md:block text-left">
+              <p class="text-xs font-bold text-slate-900 leading-tight">Rizky Maulana</p>
+              <p class="text-[10px] text-amber-700 font-semibold">Head of Collection & Risk</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- HERO BANNER / GREETING SECTION (White Theme Card) -->
+    <div class="bg-white rounded-2xl p-6 text-slate-900 border border-slate-200/80 shadow-xs relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-56 h-56 bg-amber-500/10 rounded-full blur-3xl"></div>
+
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
+        <div class="space-y-1.5">
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i>
+            <span>Selamat Datang Kembali 👋</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Pusat Pemantauan Penagihan & Koleksi Debitur
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+            Kelola statistik tunggakan, kirim pesan pengingat resmi, dan catat komitmen janji bayar debitur secara
+            mudah, aman, dan transparan.
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="createCommitmentBtn"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition-all hover:scale-[1.02] border border-amber-400">
+            <i data-lucide="plus-circle" class="w-4 h-4 font-bold"></i>
+            Buat Komitmen Baru
+          </button>
+
+          <button id="importExcelBtn"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all hover:scale-[1.02]">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            Import Excel
+          </button>
+
+          <button id="openCreateOfficerBtn"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 shadow-xs transition-all">
+            <i data-lucide="user-plus" class="w-4 h-4 text-indigo-600"></i>
+            Tambah Officer
+          </button>
+
+          <button id="exportCsvBtn"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 shadow-xs transition-all">
+            <i data-lucide="download" class="w-4 h-4 text-amber-600"></i>
+            Export CSV
+          </button>
+
+          <button id="quickDispatchBtn"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 shadow-xs transition-all">
+            <i data-lucide="send" class="w-4 h-4 text-blue-600"></i>
+            Batch Dispatch
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- METRIC SUMMARY CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <!-- Card 1: Total Debitur Overdue -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Debitur Overdue</span>
+          <div class="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <div>
+            <h3 class="text-3xl font-extrabold text-slate-900" id="metricTotalDebtors">0</h3>
+            <p class="text-xs text-slate-500 mt-1">Baki Debet: <span class="font-bold text-slate-800"
+                id="metricTotalBakiDebet">Rp 0</span></p>
+          </div>
+          <span
+            class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            +2.32%
+          </span>
+        </div>
+      </div>
+
+      <!-- Card 2: High Exposure (Tier 1) -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tier 1 (Risiko Tinggi)</span>
+          <div class="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <div>
+            <div class="flex items-baseline gap-2">
+              <h3 class="text-3xl font-extrabold text-slate-900" id="metricTier1Count">0</h3>
+              <span class="text-xs font-bold text-slate-500" id="metricTier1Ratio">(0%)</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Butuh kontak & penanganan intensif</p>
+          </div>
+          <span
+            class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+            -36%
+          </span>
+        </div>
+      </div>
+
+      <!-- Card 3: Pending Commitments Today -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Komitmen Hari Ini</span>
+          <div class="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+            <i data-lucide="calendar-check" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <div>
+            <h3 class="text-3xl font-extrabold text-slate-900" id="metricCommitmentsToday">0</h3>
+            <p class="text-xs text-slate-500 mt-1">Jatuh tempo komitmen hari ini</p>
+          </div>
+          <span
+            class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+            PTP Active
+          </span>
+        </div>
+      </div>
+
+      <!-- Card 4: Dispatch Coverage -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Coverage Dispatch</span>
+          <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <div>
+            <h3 class="text-3xl font-extrabold text-slate-900" id="metricCoverageRate">88.5%</h3>
+            <p class="text-xs text-slate-500 mt-1">Debitur ter-dispatch wording resmi</p>
+          </div>
+          <span
+            class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            +5.4%
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FILTER & SEARCH BAR SECTION -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-4">
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </div>
+          <input type="text" id="searchInput" placeholder="Cari Nama Debitur atau No Rekening..."
+            class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all">
+          <button id="clearSearchBtn"
+            class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700">
+            <i data-lucide="x-circle" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center gap-2">
+
+          <!-- Exposure Tier Dropdown -->
+          <div class="min-w-[140px]">
+            <select id="tierFilter"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+              <option value="ALL">Semua Tier Risk</option>
+              <option value="Tier 1">Tier 1 (Tinggi)</option>
+              <option value="Tier 2">Tier 2 (Sedang)</option>
+              <option value="Tier 3">Tier 3 (Rendah)</option>
+            </select>
+          </div>
+
+          <!-- Pengelola Dropdown -->
+          <div class="min-w-[160px]">
+            <select id="pengelolaFilter"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+              <option value="ALL">Semua Account Officer</option>
+            </select>
+          </div>
+
+          <!-- Produk Dropdown -->
+          <div class="min-w-[140px]">
+            <select id="produkFilter"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+              <option value="ALL">Semua Produk</option>
+              <option value="KPR">KPR</option>
+              <option value="KMK">KMK</option>
+              <option value="KI">KI</option>
+              <option value="KKM">KKM</option>
+            </select>
+          </div>
+
+          <!-- Reset Filter Button -->
+          <button id="resetFiltersBtn"
+            class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-colors flex items-center gap-1.5"
+            title="Reset Filter">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-amber-600"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Active Filter Status & Count Indicator -->
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 gap-2">
+        <div class="flex items-center gap-2">
+          <span>Menampilkan <strong id="visibleRowCount" class="text-slate-900 font-bold">0</strong> dari <strong
+              id="totalRowCount" class="text-slate-700 font-bold">0</strong> data debitur</span>
+          <span id="activeFilterBadge"
+            class="hidden px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full border border-amber-300 text-[11px] font-bold">Filter
+            Aktif</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+          <span
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-800 rounded-lg border border-rose-200 shadow-2xs">
+            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Merah: Jatuh Tempo / Expired
+          </span>
+          <span
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-900 rounded-lg border border-amber-200 shadow-2xs">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Oranye: 1 Minggu s/d Expire
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DATA TABLE CONTAINER -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead
+            class="bg-slate-50/90 text-slate-500 uppercase font-bold tracking-wider text-[11px] border-b border-slate-200 sticky top-0 z-10 select-none">
+            <tr>
+              <th scope="col" class="py-3.5 px-4 cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="noRekening">
+                <div class="flex items-center gap-1.5">
+                  <span>No Rekening</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="namaDebitur">
+                <div class="flex items-center gap-1.5">
+                  <span>Nama Debitur</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="produk">
+                <div class="flex items-center gap-1.5">
+                  <span>Produk</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 text-right cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="limit">
+                <div class="flex items-center justify-end gap-1.5">
+                  <span>Limit</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 text-right cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="bakiDebet">
+                <div class="flex items-center justify-end gap-1.5">
+                  <span>Baki Debet</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="tierEksposur">
+                <div class="flex items-center justify-center gap-1.5">
+                  <span>Tier Risk</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="pengelola">
+                <div class="flex items-center gap-1.5">
+                  <span>Account Officer</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 text-center">Pairing Team</th>
+              <th scope="col" class="py-3.5 px-4 text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="tglKomitmen">
+                <div class="flex items-center justify-center gap-1.5">
+                  <span>Tgl Komitmen</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                data-sort="statusKomitmen">
+                <div class="flex items-center justify-center gap-1.5">
+                  <span>Status Komitmen</span>
+                  <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
+              </th>
+              <th scope="col" class="py-3.5 px-4 min-w-[180px]">Catatan</th>
+              <th scope="col"
+                class="py-3.5 px-4 text-center sticky right-0 bg-slate-50 border-l border-slate-200 min-w-[200px]">Aksi
+              </th>
+            </tr>
+          </thead>
+          <tbody id="debtorTableBody" class="divide-y divide-slate-100 bg-white">
+            <!-- Dynamic Rows rendered via app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- EMPTY STATE VIEW -->
+      <div id="emptyState" class="hidden p-12 text-center">
+        <div
+          class="w-16 h-16 bg-slate-100 text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-200">
+          <i data-lucide="search-x" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">Tidak ada data debitur ditemukan</h3>
+        <p class="text-xs text-slate-500 mt-1">Coba sesuaikan kata kunci pencarian atau reset filter yang sedang aktif.
+        </p>
+        <button id="emptyResetBtn"
+          class="mt-4 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition-all border border-slate-300 shadow-xs">
+          Reset Filter
+        </button>
+      </div>
+
+      <!-- PAGINATION CONTROLS FOOTER -->
+      <div
+        class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+
+        <div class="flex items-center gap-3">
+          <span class="whitespace-nowrap">Baris per halaman:</span>
+          <select id="itemsPerPage"
+            class="py-1 px-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+          <span class="hidden sm:inline text-slate-300">|</span>
+          <span id="paginationSummary">Halaman 1 dari 1</span>
+        </div>
+
+        <div class="flex items-center gap-1.5" id="paginationButtons">
+          <!-- Page buttons generated dynamically -->
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>© 2026 PT Bank Utama Mandiri (BUMA) - System Monitoring Collections v2.4.0</p>
+      <p class="text-slate-400">Encrypted Enterprise Dispatch System</p>
+    </div>
+  </footer>
+
+  <!-- MODAL 1: WORDING GENERATOR -->
+  <div id="wordingModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm hidden animate-fade-in">
+    <div
+      class="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
+
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-200">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Collection Wording Generator</h3>
+            <p class="text-xs text-slate-500" id="wordingDebtorSub">Debitur: <span class="text-slate-900 font-semibold"
+                id="wordingDebtorName">-</span></p>
+          </div>
+        </div>
+        <button id="closeWordingModal"
+          class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-5">
+
+        <!-- Target Debtor Snapshot -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <span class="text-slate-500 block text-[11px]">No Rekening</span>
+            <strong class="text-slate-900 font-mono" id="wordingAccNo">-</strong>
+          </div>
+          <div>
+            <span class="text-slate-500 block text-[11px]">Baki Debet</span>
+            <strong class="text-emerald-700" id="wordingBakiDebet">-</strong>
+          </div>
+          <div>
+            <span class="text-slate-500 block text-[11px]">Tier Eksposur</span>
+            <span id="wordingTierBadge" class="inline-block font-bold">-</span>
+          </div>
+          <div>
+            <span class="text-slate-500 block text-[11px]">Tgl Komitmen</span>
+            <strong class="text-amber-700" id="wordingTglKomitmen">-</strong>
+          </div>
+        </div>
+
+        <!-- Dispatch Channel Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-2">Saluran Penagihan (Channel)</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button"
+              class="channel-btn active flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all bg-emerald-50 border-emerald-300 text-emerald-800"
+              data-channel="whatsapp">
+              <i data-lucide="message-square" class="w-4 h-4"></i>
+              WhatsApp
+            </button>
+            <button type="button"
+              class="channel-btn flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              data-channel="email">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+              Email Resmi
+            </button>
+            <button type="button"
+              class="channel-btn flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              data-channel="sms">
+              <i data-lucide="phone-call" class="w-4 h-4"></i>
+              SMS / Telepon
+            </button>
+          </div>
+        </div>
+
+        <!-- Tone Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-2">Gaya Bahasa & Nadatuju (Tone)</label>
+          <select id="wordingToneSelect"
+            class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer">
+            <option value="soft">Peringatan Halus (Soft Reminder - Pra Jatuh Tempo)</option>
+            <option value="firm" selected>Teguran Resmi (Firm Notice - Jatuh Tempo Today)</option>
+            <option value="urgent">Somasi / Pra-Hukum (Urgent / Warning Tier 1)</option>
+          </select>
+        </div>
+
+        <!-- Generated Textarea -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-slate-700">Draft Wording Penagihan</label>
+            <span class="text-[11px] text-slate-400">Dapat diedit langsung sebelum dikirim</span>
+          </div>
+          <textarea id="wordingTextarea" rows="7"
+            class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed shadow-inner"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+        <button id="openWaBtn"
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+          Buka WhatsApp Web
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button id="closeWordingBottomBtn"
+            class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all">
+            Tutup
+          </button>
+          <button id="copyWordingBtn"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-bold rounded-xl shadow-xs transition-all">
+            <i data-lucide="copy" class="w-4 h-4" id="copyIcon"></i>
+            <span id="copyBtnText">Salin Wording</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: COMMITMENT UPDATE FORM -->
+  <div id="commitmentModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm hidden animate-fade-in">
+    <div
+      class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-slide-up flex flex-col">
+
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-amber-100 text-amber-700 rounded-xl border border-amber-200">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Update Komitmen Debitur</h3>
+            <p class="text-xs text-slate-500" id="commitmentDebtorSub">Debitur: <span
+                class="text-slate-900 font-semibold" id="commitmentDebtorName">-</span></p>
+          </div>
+        </div>
+        <button id="closeCommitmentModal"
+          class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form id="commitmentForm" class="p-6 space-y-4">
+        <input type="hidden" id="commitmentDebtorId" value="">
+
+        <!-- Selected Debtor Context Box (Read-Only Immutable context: account_no, debtor_name, product) -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+          <div>
+            <span class="text-slate-500 text-[11px] block">No Rekening</span>
+            <strong class="text-slate-900 font-mono" id="commitmentAccNo">-</strong>
+          </div>
+          <div class="text-right">
+            <span class="text-slate-500 text-[11px] block">Baki Debet saat ini</span>
+            <strong class="text-emerald-700 font-bold" id="commitmentBakiDebet">-</strong>
+          </div>
+        </div>
+
+        <!-- Officer & Pairing Team Inputs -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="inputOfficerID" class="block text-xs font-semibold text-slate-700 mb-1">Account Officer
+              (Pengelola)</label>
+            <select id="inputOfficerID"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+              <option value="OFF-001">Budi Santoso (OFF-001)</option>
+              <option value="OFF-002">Siti Rahma (OFF-002)</option>
+              <option value="OFF-003">Ahmad Dahlan (OFF-003)</option>
+              <option value="OFF-004">Dian Sastro (OFF-004)</option>
+            </select>
+          </div>
+          <div>
+            <label for="inputOfficerPairID" class="block text-xs font-semibold text-slate-700 mb-1">Pairing Team /
+              Officer</label>
+            <select id="inputOfficerPairID"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+              <option value="OFF-001">Desk 01 / Budi Santoso (OFF-001)</option>
+              <option value="OFF-002">Desk 02 / Siti Rahma (OFF-002)</option>
+              <option value="OFF-003">Desk 03 / Ahmad Dahlan (OFF-003)</option>
+              <option value="OFF-004">Desk 04 / Dian Sastro (OFF-004)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Limit, Baki Debet & Tier Inputs -->
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label for="inputLimit" class="block text-xs font-semibold text-slate-700 mb-1">Credit Limit (Rp)</label>
+            <input type="text" id="inputLimit" placeholder="5.000.000.000"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all font-mono">
+            <div id="inputLimitPreview" class="text-[11px] text-slate-500 font-medium mt-1"></div>
+          </div>
+          <div>
+            <label for="inputBakiDebetInput" class="block text-xs font-semibold text-slate-700 mb-1">Baki Debet
+              (Rp)</label>
+            <input type="text" id="inputBakiDebetInput" placeholder="4.250.000.000"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all font-mono">
+            <div id="inputBakiDebetPreview" class="text-[11px] text-emerald-600 font-semibold mt-1"></div>
+          </div>
+          <div>
+            <label for="inputExposureTier" class="block text-xs font-semibold text-slate-700 mb-1">Tier Eksposur</label>
+            <select id="inputExposureTier"
+              class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+              <option value="Tier 1">Tier 1 (Tinggi)</option>
+              <option value="Tier 2">Tier 2 (Sedang)</option>
+              <option value="Tier 3">Tier 3 (Rendah)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tanggal Komitmen Input -->
+        <div>
+          <label for="inputTglKomitmen" class="block text-xs font-semibold text-slate-700 mb-1">Tanggal Komitmen Bayar
+            <span class="text-rose-500">*</span></label>
+          <input type="date" id="inputTglKomitmen" required
+            class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all">
+        </div>
+
+        <!-- Status Komitmen Dropdown -->
+        <div>
+          <label for="inputStatusKomitmen" class="block text-xs font-semibold text-slate-700 mb-1">Status
+            Komitmen</label>
+          <select id="inputStatusKomitmen"
+            class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+            <option value="On Progress/Implementasi">On Progress/Implementasi</option>
+            <option value="Belum Dilaksanakan">Belum Dilaksanakan</option>
+            <option value="Telah Dilaksanakan">Telah Dilaksanakan</option>
+            <option value="Melewati Komitmen">Melewati Komitmen</option>
+          </select>
+        </div>
+
+        <!-- Nominal Komitmen Input -->
+        <div>
+          <label for="inputNominal" class="block text-xs font-semibold text-slate-700 mb-1">Nominal Komitmen
+            (Rp)</label>
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-mono text-xs">
+              Rp</div>
+            <input type="text" id="inputNominal" placeholder="4.250.000.000"
+              class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all font-mono">
+          </div>
+          <div id="inputNominalPreview" class="text-[11px] text-amber-600 font-semibold mt-1"></div>
+        </div>
+
+        <!-- Catatan / Remarks -->
+        <div>
+          <label for="inputKeterangan" class="block text-xs font-semibold text-slate-700 mb-1">Catatan Tambahan
+            (Keterangan)</label>
+          <textarea id="inputKeterangan" rows="3" placeholder="Tuliskan detail hasil percakapan dengan debitur..."
+            class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all leading-relaxed"></textarea>
+        </div>
+
+        <!-- Modal Footer inside Form -->
+        <div
+          class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 -mx-6 -mb-6 mt-4">
+          <button type="button" id="closeCommitmentBottomBtn"
+            class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all">
+            Batal
+          </button>
+          <button type="submit" id="submitCommitmentBtn" form="commitmentForm"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition-all">
+            <i data-lucide="save" class="w-4 h-4 font-bold"></i>
+            Simpan Komitmen
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL 3: CREATE NEW COMMITMENT (POST /api/v1/commitments) -->
+  <div id="createCommitmentModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm hidden animate-fade-in">
+    <div
+      class="bg-white border border-slate-200 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-slide-up flex flex-col max-h-[92vh]">
+
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Buat Komitmen Baru (JSON Payload API)</h3>
+          </div>
+        </div>
+        <button id="closeCreateCommitmentModal"
+          class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form Panel) -->
+      <div class="p-6 overflow-y-auto">
+        <form id="createCommitmentForm" class="space-y-3">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="createAccountNo" class="block text-xs font-semibold text-slate-700 mb-1">Account No (No
+                Rekening) <span class="text-rose-500">*</span></label>
+              <input type="text" id="createAccountNo" value="1029384756" required
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all font-mono">
+            </div>
+
+            <div>
+              <label for="createDebtorName" class="block text-xs font-semibold text-slate-700 mb-1">Debtor Name</label>
+              <label for="createOfficerID" class="block text-xs font-semibold text-slate-700 mb-1">Officer ID
+                (Pengelola)</label>
+              <select id="createOfficerID"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer font-mono">
+                <option value="OFF-001">OFF-001 - Budi Santoso</option>
+                <option value="OFF-002">OFF-002 - Siti Rahma</option>
+                <option value="OFF-003">OFF-003 - Ahmad Dahlan</option>
+                <option value="OFF-004">OFF-004 - Dian Sastro</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="createOfficerPairID" class="block text-xs font-semibold text-slate-700 mb-1">Officer Pair ID
+                (Pairing)</label>
+              <select id="createOfficerPairID"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer font-mono">
+                <option value="OFF-001">OFF-001 - Budi Santoso (Desk 01)</option>
+                <option value="OFF-002">OFF-002 - Siti Rahma (Desk 02)</option>
+                <option value="OFF-003">OFF-003 - Ahmad Dahlan (Desk 03)</option>
+                <option value="OFF-004">OFF-004 - Dian Sastro (Desk 04)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="createProduct" class="block text-xs font-semibold text-slate-700 mb-1">Product</label>
+              <input type="text" id="createProduct" value="Kredit Multiguna"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all">
+            </div>
+
+            <div>
+              <label for="createExposureTier" class="block text-xs font-semibold text-slate-700 mb-1">Exposure
+                Tier</label>
+              <select id="createExposureTier"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+                <option value="Tier 1">Tier 1 (Tinggi)</option>
+                <option value="Tier 2" selected>Tier 2 (Sedang)</option>
+                <option value="Tier 3">Tier 3 (Rendah)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="createOutstandingBalance" class="block text-xs font-semibold text-slate-700 mb-1">Outstanding
+                Balance</label>
+              <input type="number" id="createOutstandingBalance" value="45000000" step="1000"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all font-mono">
+            </div>
+
+            <div>
+              <label for="createCreditLimit" class="block text-xs font-semibold text-slate-700 mb-1">Credit
+                Limit</label>
+              <input type="number" id="createCreditLimit" value="50000000" step="1000"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all font-mono">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="createCommitmentDate" class="block text-xs font-semibold text-slate-700 mb-1">Commitment
+                Date</label>
+              <input type="date" id="createCommitmentDate" value="2026-09-15"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all">
+            </div>
+
+            <div>
+              <label for="createStatus" class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+              <select id="createStatus"
+                class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer">
+                <option value="On Progress/Implementasi">On Progress/Implementasi</option>
+                <option value="Belum Dilaksanakan">Belum Dilaksanakan</option>
+                <option value="Telah Dilaksanakan">Telah Dilaksanakan</option>
+                <option value="Melewati Komitmen">Melewati Komitmen</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="createReason" class="block text-xs font-semibold text-slate-700 mb-1">Reason <span
+                class="text-rose-500">*</span></label>
+            <input type="text" id="createReason" value="Menunggu pencairan invoice bulanan" required
+              class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all">
+          </div>
+
+          <div>
+            <label for="createRemarks" class="block text-xs font-semibold text-slate-700 mb-1">Remarks</label>
+            <textarea id="createRemarks" rows="2"
+              class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all leading-relaxed">Debitur bersedia membayar 50% via transfer</textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button type="button" id="closeCreateCommitmentBottomBtn"
+          class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all">
+          Batal
+        </button>
+        <button type="button" id="submitCreateCommitmentBtn"
+          class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Kirim Ke API</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 4: CREATE NEW OFFICER (POST /api/v1/officers) -->
+  <div id="createOfficerModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden animate-fade-in">
+    <div
+      class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-slide-up flex flex-col max-h-[92vh]">
+
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-200">
+            <i data-lucide="user-plus" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Tambah Officer Management</h3>
+            <p class="text-xs text-slate-500">API Endpoint: <span class="font-mono text-indigo-600 font-semibold">POST
+                http://localhost:8080/api/v1/officers</span></p>
+          </div>
+        </div>
+        <button id="closeCreateOfficerModal"
+          class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form Panel) -->
+      <div class="p-6 overflow-y-auto">
+        <form id="createOfficerForm" class="space-y-4">
+          <div>
+            <label for="createOfficerIDInput" class="block text-xs font-semibold text-slate-700 mb-1">Officer ID
+              (Optional)</label>
+            <input type="text" id="createOfficerIDInput" placeholder="OFF-005" value="OFF-005"
+              class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono">
+            <span class="text-[10px] text-slate-400">Opsional, ID sistem internal officer</span>
+          </div>
+
+          <div>
+            <label for="createOfficerFullName" class="block text-xs font-semibold text-slate-700 mb-1">Full Name <span
+                class="text-rose-500">*</span></label>
+            <input type="text" id="createOfficerFullName" placeholder="Rizky Ramadhan" value="Rizky Ramadhan" required
+              class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+          </div>
+
+          <div>
+            <label for="createOfficerEmail" class="block text-xs font-semibold text-slate-700 mb-1">Email Address <span
+                class="text-rose-500">*</span></label>
+            <input type="email" id="createOfficerEmail" placeholder="rizky.ramadhan@buma.co.id"
+              value="rizky.ramadhan@buma.co.id" required
+              class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono">
+          </div>
+
+          <div>
+            <label for="createOfficerPairingTeam" class="block text-xs font-semibold text-slate-700 mb-1">Pairing Team
+              <span class="text-rose-500">*</span></label>
+            <input type="text" id="createOfficerPairingTeam" placeholder="Desk 05" value="Desk 05" required
+              class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+          </div>
+
+          <div>
+            <label for="createOfficerPhone" class="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+            <input type="text" id="createOfficerPhone" placeholder="081299990000" value="081299990000"
+              class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono">
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button type="button" id="closeCreateOfficerBottomBtn"
+          class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all">
+          Batal
+        </button>
+        <button type="button" id="submitCreateOfficerBtn"
+          class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Kirim Ke API</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 5: IMPORT EXCEL COMMITMENTS (POST /api/v1/commitments/import-excel) -->
+  <div id="importExcelModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden animate-fade-in">
+    <div
+      class="bg-white border border-slate-200 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-slide-up flex flex-col max-h-[92vh]">
+
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200">
+            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Import Komitmen dari File Excel</h3>
+            <p class="text-xs text-slate-500">API Endpoint: <span class="font-mono text-emerald-600 font-semibold">POST
+                /api/v1/commitments/import-excel</span></p>
+          </div>
+        </div>
+        <button id="closeImportExcelModal"
+          class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4">
+
+        <!-- Info Banner -->
+        <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-900 leading-relaxed">
+          <div class="flex items-center gap-2 font-bold mb-1">
+            <i data-lucide="info" class="w-4 h-4 text-emerald-600"></i>
+            <span>Format Kolom Excel yang Didukung:</span>
+          </div>
+          <p class="text-slate-700 mb-2">Unggah file spreadsheet <code
+              class="bg-white px-1.5 py-0.5 rounded border border-emerald-200 font-mono text-emerald-800">.xlsx</code>
+            dengan header kolom berikut (fleksibel/sesuai nama field):</p>
+          <div class="flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-700">
+            <span class="px-2 py-0.5 bg-white rounded border border-emerald-200 font-semibold text-emerald-800">Account
+              No *</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-emerald-200 font-semibold text-emerald-800">Reason
+              *</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Debtor Name</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Officer ID</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Officer Pair ID</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Product</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Exposure Tier</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Outstanding Balance</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Credit Limit</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Commitment Date</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Status</span>
+            <span class="px-2 py-0.5 bg-white rounded border border-slate-200">Remarks</span>
+          </div>
+        </div>
+
+        <!-- File Upload Zone -->
+        <div id="excelDropzone"
+          class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 text-center transition-all bg-slate-50 hover:bg-emerald-50/30 cursor-pointer">
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden">
+          <div class="flex flex-col items-center gap-2">
+            <div class="p-3 bg-white text-emerald-600 rounded-full shadow-xs border border-slate-200" id="excelIconBox">
+              <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-800" id="excelFileName">Klik atau Seret File Excel ke Sini</p>
+              <p class="text-xs text-slate-500" id="excelFileSize">Format didukung: .xlsx, .xls (Maks 10MB)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress / Result Box -->
+        <div id="importResultBox" class="hidden p-4 rounded-xl border space-y-2 bg-slate-50 border-slate-200">
+          <div class="flex items-center justify-between text-xs font-bold" id="importResultSummary">
+            <!-- Dynamically updated -->
+          </div>
+          <div id="importResultDetails"
+            class="text-xs space-y-1 max-h-40 overflow-y-auto font-mono bg-slate-900 text-slate-200 p-3 rounded-lg hidden">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button type="button" id="closeImportExcelBottomBtn"
+          class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition-all">
+          Batal
+        </button>
+        <button type="button" id="submitImportExcelBtn" disabled
+          class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-xs transition-all">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <span>Proses Import Excel</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-3 pointer-events-none max-w-sm w-full"></div>
+
+  <!-- APPLICATION SCRIPT -->
+  <script src="app.js"></script>
+</body>
+
+</html>
