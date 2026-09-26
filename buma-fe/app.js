@@ -685,7 +685,7 @@ async function fetchCommitmentsFromApi() {
           return {
             id: c.id || (existing ? existing.id : "CMT-" + c.account_no),
             noRekening: c.account_no,
-            namaDebitur: existing ? existing.namaDebitur : `Debitur (${c.account_no})`,
+            namaDebitur: c.debtor_name || (existing ? existing.namaDebitur : `Debitur (${c.account_no})`),
             produk: c.product || (existing ? existing.produk : "KMK"),
             limit: parseMoney(c.credit_limit) > 0 ? parseMoney(c.credit_limit) : (existing ? existing.limit : (parseMoney(c.nominal) > 0 ? parseMoney(c.nominal) * 1.2 : 1000000000)),
             bakiDebet: parseMoney(c.outstanding_balance) > 0 ? parseMoney(c.outstanding_balance) : (parseMoney(c.nominal) > 0 ? parseMoney(c.nominal) : (existing ? existing.bakiDebet : 500000000)),
