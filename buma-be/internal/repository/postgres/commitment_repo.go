@@ -176,7 +176,7 @@ func (r *commitmentRepository) CreateOrUpdateCommitment(ctx context.Context, req
 
 func (r *commitmentRepository) GetCommitmentsByAccountNo(ctx context.Context, accountNo string) ([]domain.CollectionCommitment, error) {
 	query := `
-		SELECT id, account_no, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
+		SELECT id, account_no, debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
 		FROM collection_commitments
 		WHERE account_no = $1
 		ORDER BY created_at DESC
@@ -191,7 +191,7 @@ func (r *commitmentRepository) GetCommitmentsByAccountNo(ctx context.Context, ac
 	var list []domain.CollectionCommitment
 	for rows.Next() {
 		var c domain.CollectionCommitment
-		if err := rows.Scan(&c.ID, &c.AccountNo, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -206,7 +206,7 @@ func (r *commitmentRepository) GetCommitmentsByAccountNo(ctx context.Context, ac
 
 func (r *commitmentRepository) GetCommitmentsByDate(ctx context.Context, dateStr string) ([]domain.CollectionCommitment, error) {
 	query := `
-		SELECT id, account_no, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
+		SELECT id, account_no, debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
 		FROM collection_commitments
 		WHERE commitment_date = $1
 		ORDER BY created_at DESC
@@ -221,7 +221,7 @@ func (r *commitmentRepository) GetCommitmentsByDate(ctx context.Context, dateStr
 	var list []domain.CollectionCommitment
 	for rows.Next() {
 		var c domain.CollectionCommitment
-		if err := rows.Scan(&c.ID, &c.AccountNo, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -330,7 +330,7 @@ func (r *commitmentRepository) GetCommitments(ctx context.Context, filter domain
 	var list []domain.CollectionCommitment
 	if r.db != nil {
 		dataQuery := fmt.Sprintf(`
-			SELECT c.id, c.account_no, TO_CHAR(c.commitment_date, 'YYYY-MM-DD'), COALESCE(c.officer_id, ''), COALESCE(c.officer_pair_id, ''), c.status, COALESCE(c.reason, ''), COALESCE(c.remarks, ''), COALESCE(c.nominal, 0), COALESCE(c.credit_limit, 0), COALESCE(c.outstanding_balance, 0), COALESCE(c.exposure_tier, ''), COALESCE(c.product, ''), c.created_at, c.updated_at
+			SELECT c.id, c.account_no, c.debtor_name, TO_CHAR(c.commitment_date, 'YYYY-MM-DD'), COALESCE(c.officer_id, ''), COALESCE(c.officer_pair_id, ''), c.status, COALESCE(c.reason, ''), COALESCE(c.remarks, ''), COALESCE(c.nominal, 0), COALESCE(c.credit_limit, 0), COALESCE(c.outstanding_balance, 0), COALESCE(c.exposure_tier, ''), COALESCE(c.product, ''), c.created_at, c.updated_at
 			FROM collection_commitments c
 			LEFT JOIN debtor_accounts d ON c.account_no = d.account_no
 			LEFT JOIN officers o ON c.officer_id = o.officer_id
@@ -348,7 +348,7 @@ func (r *commitmentRepository) GetCommitments(ctx context.Context, filter domain
 
 		for rows.Next() {
 			var c domain.CollectionCommitment
-			if err := rows.Scan(&c.ID, &c.AccountNo, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreditLimit, &c.OutstandingBalance, &c.ExposureTier, &c.Product, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			if err := rows.Scan(&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreditLimit, &c.OutstandingBalance, &c.ExposureTier, &c.Product, &c.CreatedAt, &c.UpdatedAt); err != nil {
 				return nil, err
 			}
 			list = append(list, c)
@@ -376,14 +376,14 @@ func (r *commitmentRepository) GetCommitmentByID(ctx context.Context, id string)
 	}
 
 	query := `
-		SELECT id, account_no, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
+		SELECT id, account_no, c.debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
 		FROM collection_commitments
 		WHERE id = $1
 	`
 
 	var c domain.CollectionCommitment
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&c.ID, &c.AccountNo, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt,
+		&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
