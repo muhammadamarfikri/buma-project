@@ -53,6 +53,8 @@ func SetupRouter(deps RouterDependencies) *echo.Echo {
 		// Commitment Endpoints
 		v1.POST("/commitments", deps.CommitmentHandler.CreateCommitment)
 		v1.POST("/commitments/import-excel", deps.CommitmentHandler.ImportCommitmentsExcel)
+		v1.GET("/commitments/export/excel", deps.CommitmentHandler.ExportCommitmentsExcel)
+		v1.GET("/commitments/export/pdf", deps.CommitmentHandler.ExportCommitmentsPDF)
 		v1.GET("/commitments", deps.CommitmentHandler.GetAllCommitments)
 		v1.GET("/commitments/:account_no", deps.CommitmentHandler.GetCommitmentHistory)
 		v1.PUT("/commitments/:id", deps.CommitmentHandler.UpdateCommitment)

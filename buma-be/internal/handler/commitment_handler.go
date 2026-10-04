@@ -134,5 +134,61 @@ func (h *CommitmentHandler) ImportCommitmentsExcel(c echo.Context) error {
 	return RespondWithSuccess(c, http.StatusOK, "Excel file processed successfully", result)
 }
 
+func (h *CommitmentHandler) getFilterFromQuery(c echo.Context) domain.CommitmentFilter {
+	page, _ := strconv.Atoi(c.QueryParam("page"))
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+
+	filter := domain.CommitmentFilter{
+		Page:      page,
+		Limit:     limit,
+		AccountNo: strings.TrimSpace(c.QueryParam("account_no")),
+		Status:    strings.TrimSpace(c.QueryParam("status")),
+		Search:    strings.TrimSpace(c.QueryParam("search")),
+		Tier:      strings.TrimSpace(c.QueryParam("tier")),
+		Pengelola: strings.TrimSpace(c.QueryParam("pengelola")),
+		Product:   strings.TrimSpace(c.QueryParam("product")),
+		SortBy:    strings.TrimSpace(c.QueryParam("sort_by")),
+		SortDir:   strings.TrimSpace(c.QueryParam("sort_dir")),
+	}
+
+	if filter.Tier == "" {
+		filter.Tier = strings.TrimSpace(c.QueryParam("tier_eksposur"))
+	}
+	if filter.Product == "" {
+		filter.Product = strings.TrimSpace(c.QueryParam("produk"))
+	}
+	if filter.Pengelola == "" {
+		filter.Pengelola = strings.TrimSpace(c.QueryParam("officer_id"))
+	}
+	return filter
+}
+
+// ExportCommitmentsExcel handles GET /api/v1/commitments/export/excel
+func (h *CommitmentHandler) ExportCommitmentsExcel(c echo.Context) error {
+	filter := h.getFilterFromQuery(c)
+	data, err := h.usecase.ExportCommitmentsExcel(c.Request().Context(), filter)
+	if err != nil {
+		return RespondWithError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	c.Response().Header().Set(echo.HeaderContentType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Response().Header().Set(echo.HeaderContentDisposition, `attachment; filename="buma_commitments_report.xlsx"`)
+	return c.Blob(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data)
+}
+
+// ExportCommitmentsPDF handles GET /api/v1/commitments/export/pdf
+func (h *CommitmentHandler) ExportCommitmentsPDF(c echo.Context) error {
+	filter := h.getFilterFromQuery(c)
+	data, err := h.usecase.ExportCommitmentsPDF(c.Request().Context(), filter)
+	if err != nil {
+		return RespondWithError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	c.Response().Header().Set(echo.HeaderContentType, "application/pdf")
+	c.Response().Header().Set(echo.HeaderContentDisposition, `attachment; filename="buma_commitments_report.pdf"`)
+	return c.Blob(http.StatusOK, "application/pdf", data)
+}
+
+
 
 

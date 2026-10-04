@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jung-kurt/gofpdf"
 	"github.com/xuri/excelize/v2"
 
 	"buma-be/internal/domain"
@@ -21,6 +23,8 @@ type CommitmentUsecase interface {
 	GetAllCommitments(ctx context.Context, filter domain.CommitmentFilter) (*domain.PaginatedCommitmentResponse, error)
 	UpdateCommitment(ctx context.Context, id string, req domain.UpdateCommitmentRequest) (*domain.CollectionCommitment, error)
 	ImportCommitmentsFromExcel(ctx context.Context, reader io.Reader) (*domain.ExcelImportResult, error)
+	ExportCommitmentsExcel(ctx context.Context, filter domain.CommitmentFilter) ([]byte, error)
+	ExportCommitmentsPDF(ctx context.Context, filter domain.CommitmentFilter) ([]byte, error)
 }
 
 type commitmentUsecase struct {
@@ -411,5 +415,201 @@ func (u *commitmentUsecase) isCommitmentReasonExist(data []domain.CollectionComm
 func (u *commitmentUsecase) isOfficerExist(ctx context.Context, req domain.CreateCommitmentRequest) error {
 	return nil
 }
+
+func (u *commitmentUsecase) ExportCommitmentsExcel(ctx context.Context, filter domain.CommitmentFilter) ([]byte, error) {
+	filter.Page = 1
+	filter.Limit = 10000
+
+	resp, err := u.GetAllCommitments(ctx, filter)
+	if err != nil || resp == nil {
+		return nil, fmt.Errorf("failed to fetch commitments for export: %w", err)
+	}
+
+	f := excelize.NewFile()
+	defer f.Close()
+
+	sheetName := "Commitments"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		return nil, err
+	}
+	f.SetActiveSheet(index)
+	_ = f.DeleteSheet("Sheet1")
+
+	headerStyle, err := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Color: "FFFFFF", Size: 11},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"1E3A8A"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
+	})
+	if err != nil {
+		headerStyle = 0
+	}
+
+	headers := []string{
+		"No", "ID", "No Rekening", "Nama Debitur", "Produk", "Tier Eksposur",
+		"Plafon (Rp)", "Baki Debet (Rp)", "Nominal Komitmen (Rp)", "Tgl Komitmen",
+		"Status Komitmen", "Alasan / Komitmen", "Keterangan", "Pengelola (Officer)", "Desk / Pairing",
+	}
+
+	for colIdx, h := range headers {
+		cell, _ := excelize.CoordinatesToCellName(colIdx+1, 1)
+		_ = f.SetCellValue(sheetName, cell, h)
+		if headerStyle != 0 {
+			_ = f.SetCellStyle(sheetName, cell, cell, headerStyle)
+		}
+	}
+
+	for i, c := range resp.Data {
+		rowIdx := i + 2
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("A%d", rowIdx), i+1)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("B%d", rowIdx), c.ID)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("C%d", rowIdx), c.AccountNo)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("D%d", rowIdx), c.DebtorName)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("E%d", rowIdx), c.Product)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("F%d", rowIdx), c.ExposureTier)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("G%d", rowIdx), c.CreditLimit)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("H%d", rowIdx), c.OutstandingBalance)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("I%d", rowIdx), c.Nominal)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("J%d", rowIdx), c.CommitmentDate)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("K%d", rowIdx), c.Status)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("L%d", rowIdx), c.Reason)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("M%d", rowIdx), c.Remarks)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("N%d", rowIdx), c.OfficerName)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("O%d", rowIdx), c.OfficerPairName)
+	}
+
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		return nil, fmt.Errorf("failed to write excel buffer: %w", err)
+	}
+	return buf.Bytes(), nil
+}
+
+func (u *commitmentUsecase) ExportCommitmentsPDF(ctx context.Context, filter domain.CommitmentFilter) ([]byte, error) {
+	filter.Page = 1
+	filter.Limit = 10000
+
+	resp, err := u.GetAllCommitments(ctx, filter)
+	if err != nil || resp == nil {
+		return nil, fmt.Errorf("failed to fetch commitments for export: %w", err)
+	}
+
+	pdf := gofpdf.New("L", "mm", "A4", "")
+	pdf.SetMargins(10, 10, 10)
+	pdf.AddPage()
+
+	pdf.SetFont("Arial", "B", 14)
+	pdf.SetTextColor(30, 58, 138)
+	pdf.CellFormat(0, 8, "PT BANK UTAMA MANDIRI - LAPORAN KOMITMEN PENAGIHAN", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "", 9)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.CellFormat(0, 5, fmt.Sprintf("Tanggal Cetak: %s | Total Rekaman: %d", time.Now().Format("02-01-2006 15:04:05"), len(resp.Data)), "", 1, "C", false, 0, "")
+	pdf.Ln(4)
+
+	cols := []struct {
+		name  string
+		width float64
+	}{
+		{"No", 8},
+		{"Account No", 24},
+		{"Nama Debitur", 45},
+		{"Produk", 14},
+		{"Tier", 14},
+		{"Nominal (Rp)", 30},
+		{"Tgl Janji", 22},
+		{"Status", 35},
+		{"Pengelola", 35},
+		{"Keterangan", 50},
+	}
+
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetFillColor(30, 58, 138)
+	pdf.SetTextColor(255, 255, 255)
+
+	for _, col := range cols {
+		pdf.CellFormat(col.width, 7, col.name, "1", 0, "C", true, 0, "")
+	}
+	pdf.Ln(-1)
+
+	pdf.SetFont("Arial", "", 8)
+	pdf.SetTextColor(30, 41, 59)
+
+	var totalNominal float64
+
+	for i, c := range resp.Data {
+		totalNominal += c.Nominal
+
+		if i%2 == 0 {
+			pdf.SetFillColor(248, 250, 252)
+		} else {
+			pdf.SetFillColor(255, 255, 255)
+		}
+
+		noStr := strconv.Itoa(i + 1)
+		accountNo := truncateStr(c.AccountNo, 12)
+		debtorName := truncateStr(c.DebtorName, 24)
+		product := c.Product
+		tier := c.ExposureTier
+		nominalStr := formatExportCurrency(c.Nominal)
+		tglStr := c.CommitmentDate
+		statusStr := truncateStr(c.Status, 20)
+		officerStr := truncateStr(c.OfficerName, 20)
+		remarksStr := truncateStr(c.Remarks, 32)
+
+		pdf.CellFormat(cols[0].width, 6, noStr, "1", 0, "C", true, 0, "")
+		pdf.CellFormat(cols[1].width, 6, accountNo, "1", 0, "C", true, 0, "")
+		pdf.CellFormat(cols[2].width, 6, debtorName, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(cols[3].width, 6, product, "1", 0, "C", true, 0, "")
+		pdf.CellFormat(cols[4].width, 6, tier, "1", 0, "C", true, 0, "")
+		pdf.CellFormat(cols[5].width, 6, nominalStr, "1", 0, "R", true, 0, "")
+		pdf.CellFormat(cols[6].width, 6, tglStr, "1", 0, "C", true, 0, "")
+		pdf.CellFormat(cols[7].width, 6, statusStr, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(cols[8].width, 6, officerStr, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(cols[9].width, 6, remarksStr, "1", 0, "L", true, 0, "")
+		pdf.Ln(-1)
+	}
+
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetFillColor(241, 245, 249)
+	pdf.CellFormat(cols[0].width+cols[1].width+cols[2].width+cols[3].width+cols[4].width, 7, "TOTAL NOMINAL KOMITMEN", "1", 0, "R", true, 0, "")
+	pdf.CellFormat(cols[5].width, 7, formatExportCurrency(totalNominal), "1", 0, "R", true, 0, "")
+	pdf.CellFormat(cols[6].width+cols[7].width+cols[8].width+cols[9].width, 7, "", "1", 0, "L", true, 0, "")
+	pdf.Ln(-1)
+
+	var buf bytes.Buffer
+	err = pdf.Output(&buf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate pdf output: %w", err)
+	}
+	return buf.Bytes(), nil
+}
+
+func truncateStr(str string, maxLen int) string {
+	if len(str) <= maxLen {
+		return str
+	}
+	if maxLen <= 2 {
+		return str[:maxLen]
+	}
+	return str[:maxLen-2] + ".."
+}
+
+func formatExportCurrency(val float64) string {
+	intVal := int64(val)
+	str := strconv.FormatInt(intVal, 10)
+	if len(str) <= 3 {
+		return str
+	}
+	var res []string
+	for len(str) > 3 {
+		res = append([]string{str[len(str)-3:]}, res...)
+		str = str[:len(str)-3]
+	}
+	if len(str) > 0 {
+		res = append([]string{str}, res...)
+	}
+	return strings.Join(res, ".")
+}
+
 
 

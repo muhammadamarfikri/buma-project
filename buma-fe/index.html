@@ -211,10 +211,16 @@
             Tambah Officer
           </button>
 
-          <button id="exportCsvBtn"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 shadow-xs transition-all">
-            <i data-lucide="download" class="w-4 h-4 text-amber-600"></i>
-            Export CSV
+          <button id="exportExcelBtn"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all hover:scale-[1.02]">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            Export Excel
+          </button>
+
+          <button id="exportPdfBtn"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all hover:scale-[1.02]">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            Export PDF
           </button>
 
           <button id="quickDispatchBtn"
@@ -1135,6 +1141,10 @@
   <!-- TOAST NOTIFICATION CONTAINER -->
 
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-3 pointer-events-none max-w-sm w-full"></div>
+
+  <!-- PDF GENERATION LIBRARIES (jsPDF & AutoTable) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <!-- APPLICATION SCRIPT -->
   <script src="app.js"></script>

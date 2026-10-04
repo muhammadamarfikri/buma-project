@@ -1,5 +1,5 @@
 /**
- * BUMA Debt Collection Monitoring & Reminder Dispatch System
+ * Bank Mandiri Debt Collection Monitoring & Reminder Dispatch System
  * Client-Side JavaScript Application Logic (ES6+)
  */
 
@@ -192,6 +192,8 @@ const INITIAL_DEBTORS = [
 // ==========================================
 // 2. STATE MANAGEMENT
 // ==========================================
+const API_BASE_URL = "http://localhost:8080/api/v1";
+
 const state = {
   debtors: [...INITIAL_DEBTORS],
   filteredDebtors: [],
@@ -1068,14 +1070,14 @@ function generateAndSetWordingText() {
     if (tone === "soft") {
       text = `Yth. Bapak/Ibu ${debtor.namaDebitur},
 
-Selamat pagi/siang. Kami dari Tim Collection PT Bank Utama Mandiri (BUMA) menginfokan bahwa kewajiban angsuran kredit Anda (${debtor.produk}) No. Rekening: *${debtor.noRekening}* dengan sisa baki debet *${formatIDR(debtor.bakiDebet)}* akan memasuki tanggal komitmen pada *${formatDate(debtor.tglKomitmen)}*.
+Selamat pagi/siang. Kami dari Tim Collection PT Bank Utama Mandiri (Bank Mandiri) menginfokan bahwa kewajiban angsuran kredit Anda (${debtor.produk}) No. Rekening: *${debtor.noRekening}* dengan sisa baki debet *${formatIDR(debtor.bakiDebet)}* akan memasuki tanggal komitmen pada *${formatDate(debtor.tglKomitmen)}*.
 
 Mohon dapat melakukan penyetoran sebelum pukul 17:00 WIB untuk menjaga kualitas kredit Anda tetap lancar.
 
 Jika telah melakukan pembayaran, abaikan pesan ini. Terima kasih.
-Petugas Pengelola: ${debtor.pengelola} (BUMA Collection Unit)`;
+Petugas Pengelola: ${debtor.pengelola} (Bank Mandiri Collection Unit)`;
     } else if (tone === "firm") {
-      text = `PEMBERITAHUAN PENAGIHAN KREDIT - BUMA
+      text = `PEMBERITAHUAN PENAGIHAN KREDIT - Bank Mandiri
 
 Kepada Yth.
 *${debtor.namaDebitur}*
@@ -1083,13 +1085,13 @@ No. Rekening: *${debtor.noRekening}*
 
 Diberitahukan bahwa tagihan kewajiban fasilitas kredit *${debtor.produk}* Anda sebesar *${formatIDR(debtor.bakiDebet)}* telah melewati jatuh tempo. Sesuai catatan komitmen, jadwal pembayaran jatuh pada hari *${formatDate(debtor.tglKomitmen)}*.
 
-Mohon SEGERA melakukan pembayaran melalui rekening penampungan BUMA atau konfirmasi bukti transfer hari ini kepada Account Officer Anda:
+Mohon SEGERA melakukan pembayaran melalui rekening penampungan Bank Mandiri atau konfirmasi bukti transfer hari ini kepada Account Officer Anda:
 *${debtor.pengelola}* (${debtor.pairing})
 
-Hubungi Call Center BUMA jika membutuhkan bantuan kendala transaksi.`;
+Hubungi Call Center Bank Mandiri jika membutuhkan bantuan kendala transaksi.`;
     } else { // urgent / legal
       text = `*SURAT PERINGATAN / SOMASI PRA-HUKUM*
-PT BANK UTAMA MANDIRI (BUMA)
+PT BANK UTAMA MANDIRI (Bank Mandiri)
 
 Kepada Yth. Debitur: *${debtor.namaDebitur}*
 Fasilitas Kredit: *${debtor.produk}*
@@ -1103,7 +1105,7 @@ Anda diwajibkan melakukan penyelesaian kewajiban / penyetoran komitmen pada *${f
 Segera konfirmasi ke Pengelola: *${debtor.pengelola}*.`;
     }
   } else if (channel === "email") {
-    text = `Subjek: [BUMA COLLECTION] Pemberitahuan Kewajiban Kredit No. Rek ${debtor.noRekening} - Yth. ${debtor.namaDebitur}
+    text = `Subjek: [Bank Mandiri COLLECTION] Pemberitahuan Kewajiban Kredit No. Rek ${debtor.noRekening} - Yth. ${debtor.namaDebitur}
 
 Kepada Yth.
 Management / Bp/Ibu ${debtor.namaDebitur}
@@ -1124,11 +1126,11 @@ Dimohon untuk dapat melakukan penyetoran dana ke rekening efektif tepat pada tan
 Demikian pemberitahuan ini kami sampaikan. Atas perhatian dan kerja samanya, kami ucapkan terima kasih.
 
 Hormat kami,
-PT Bank Utama Mandiri (BUMA)
+PT Bank Utama Mandiri (Bank Mandiri)
 Divisi Special Asset Management & Collection`;
   } else { // SMS / Call script
-    text = `[SCRIPT TELEPON / SMS BUMA]
-Halo Bp/Ibu ${debtor.namaDebitur}, saya ${debtor.pengelola} dari BUMA. Mengonfirmasi janji bayar fasilitas ${debtor.produk} No. Rek ${debtor.noRekening} (Baki debet ${formatIDR(debtor.bakiDebet)}) pada tanggal ${formatDate(debtor.tglKomitmen)}. Mohon dipastikan dana tersedia sebelum pukul 15.00 WIB. Terima kasih.`;
+    text = `[SCRIPT TELEPON / SMS Bank Mandiri]
+Halo Bp/Ibu ${debtor.namaDebitur}, saya ${debtor.pengelola} dari Bank Mandiri. Mengonfirmasi janji bayar fasilitas ${debtor.produk} No. Rek ${debtor.noRekening} (Baki debet ${formatIDR(debtor.bakiDebet)}) pada tanggal ${formatDate(debtor.tglKomitmen)}. Mohon dipastikan dana tersedia sebelum pukul 15.00 WIB. Terima kasih.`;
   }
 
   textarea.value = text;
@@ -1322,13 +1324,13 @@ async function handleCommitmentSubmit(e) {
 
     const data = await response.json();
     if (!response.ok) {
-      console.warn("[BUMA API Sync] PUT returned non-ok status:", response.status, data);
+      console.warn("[Bank Mandiri API Sync] PUT returned non-ok status:", response.status, data);
       showToast("Peringatan Sync Backend", data.error || data.message || "Gagal memperbarui ke server", "warning");
     } else {
-      console.log("[BUMA API Sync] Commitment updated successfully in backend:", data);
+      console.log("[Bank Mandiri API Sync] Commitment updated successfully in backend:", data);
     }
   } catch (err) {
-    console.warn("[BUMA API Sync] Backend offline or unreachable, using local state:", err.message);
+    console.warn("[Bank Mandiri API Sync] Backend offline or unreachable, using local state:", err.message);
   }
 
   // Re-fetch from API & refresh UI
@@ -1806,9 +1808,119 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("Data Commitment Diperbarui", "Data komitmen terbaru berhasil dimuat dari API GET /api/v1/commitments", "success");
   });
 
-  document.getElementById("exportCsvBtn").addEventListener("click", () => {
-    showToast("Export Data", "File CSV data debitur berhasil di-download!", "success");
-  });
+  // Export Buttons
+  const exportExcelBtn = document.getElementById("exportExcelBtn");
+  if (exportExcelBtn) {
+    exportExcelBtn.addEventListener("click", () => {
+      exportCommitmentsData("excel");
+    });
+  }
+
+  const exportPdfBtn = document.getElementById("exportPdfBtn");
+  if (exportPdfBtn) {
+    exportPdfBtn.addEventListener("click", () => {
+      exportCommitmentsData("pdf");
+    });
+  }
+
+  async function exportCommitmentsData(format) {
+    const params = new URLSearchParams();
+    if (state.searchQuery) params.append("search", state.searchQuery);
+    if (state.selectedTier && state.selectedTier !== "ALL") params.append("tier", state.selectedTier);
+    if (state.selectedProduk && state.selectedProduk !== "ALL") params.append("product", state.selectedProduk);
+    if (state.selectedPengelola && state.selectedPengelola !== "ALL") params.append("pengelola", state.selectedPengelola);
+    if (state.sortColumn) {
+      params.append("sort_by", state.sortColumn);
+      params.append("sort_dir", state.sortDirection || "desc");
+    }
+
+    const endpoint = `${API_BASE_URL}/commitments/export/${format}?${params.toString()}`;
+    showToast("Export Data", `Mengunduh laporan komitmen format ${format.toUpperCase()}...`, "info");
+
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Server status ${response.status}`);
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `buma_commitments_report.${format === "excel" ? "xlsx" : "pdf"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1000);
+      showToast("Export Berhasil", `File ${format.toUpperCase()} komitmen penagihan berhasil diunduh!`, "success");
+    } catch (err) {
+      console.warn(`[Export Error] Failed to download ${format} via API, triggering client fallback:`, err);
+      fallbackClientExport(format);
+    }
+  }
+
+  function fallbackClientExport(format) {
+    const rows = (state.filteredDebtors && state.filteredDebtors.length > 0) ? state.filteredDebtors : (state.debtors || []);
+    if (format === "excel") {
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "No,No Rekening,Nama Debitur,Produk,Tier,Baki Debet,Nominal Komitmen,Tgl Komitmen,Status Komitmen,Pengelola\n";
+      rows.forEach((d, i) => {
+        csvContent += `${i + 1},"${d.noRekening || ''}","${d.namaDebitur || ''}","${d.produk || ''}","${d.tierEksposur || ''}",${d.bakiDebet || 0},${d.nominalKomitmen || 0},"${d.tglKomitmen || ''}","${d.statusKomitmen || ''}","${d.pengelola || ''}"\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `buma_commitments_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast("Export Local CSV", "File CSV data komitmen berhasil diunduh!", "success");
+    } else if (format === "pdf") {
+      if (window.jspdf && window.jspdf.jsPDF) {
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+          doc.setFontSize(14);
+          doc.setTextColor(30, 58, 138);
+          doc.text("PT BANK UTAMA MANDIRI - LAPORAN KOMITMEN PENAGIHAN", 14, 15);
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139);
+          doc.text(`Tanggal Cetak: ${new Date().toLocaleString('id-ID')} | Total: ${rows.length} Data`, 14, 21);
+
+          const tableHeaders = [["No", "No Rekening", "Nama Debitur", "Produk", "Tier", "Nominal (Rp)", "Tgl Janji", "Status", "Pengelola"]];
+          const tableData = rows.map((d, i) => [
+            i + 1,
+            d.noRekening || "-",
+            d.namaDebitur || "-",
+            d.produk || "-",
+            d.tierEksposur || "-",
+            formatIDR(d.nominalKomitmen || 0),
+            formatDate(d.tglKomitmen) || "-",
+            d.statusKomitmen || "-",
+            d.pengelola || "-"
+          ]);
+
+          doc.autoTable({
+            head: tableHeaders,
+            body: tableData,
+            startY: 26,
+            theme: "striped",
+            headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: "bold" },
+            styles: { fontSize: 8, cellPadding: 2.5 }
+          });
+
+          doc.save("buma_commitments_report.pdf");
+          showToast("Export PDF Berhasil", "File PDF komitmen penagihan berhasil diunduh!", "success");
+        } catch (err) {
+          console.warn("[PDF Fallback Error]", err);
+          window.print();
+        }
+      } else {
+        showToast("Export PDF", "Membuka dialog cetak dokumen PDF...", "info");
+        window.print();
+      }
+    }
+  }
 
   document.getElementById("quickDispatchBtn").addEventListener("click", () => {
     showToast("Batch Dispatch Scheduled", "Wording penagihan telah di-antrekan untuk 12 debitur", "info");
