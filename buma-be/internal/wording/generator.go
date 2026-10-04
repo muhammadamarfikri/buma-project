@@ -44,49 +44,53 @@ func GenerateCollectionWording(debtor domain.DebtorAccount, channel string, tone
 		switch tone {
 		case "soft":
 			return fmt.Sprintf(
-				"Yth. Bapak/Ibu %s,\n\n"+
-					"Selamat pagi/siang. Kami dari Tim Collection PT Bank Utama Mandiri (BUMA) menginfokan bahwa kewajiban angsuran kredit Anda (%s) No. Rekening: *%s* dengan sisa baki debet *%s* akan memasuki tanggal komitmen pada *%s*.\n\n"+
-					"Mohon dapat melakukan penyetoran sebelum pukul 17:00 WIB untuk menjaga kualitas kredit Anda tetap lancar.\n\n"+
+				"Yth. Bapak/Ibu Account Officer %s,\n\n"+
+					"Selamat pagi/siang. Kami dari Tim Collection PT Bank Utama Mandiri (BUMA) menginfokan bahwa kewajiban angsuran kredit (%s) No. Rekening: *%s* atas nama debitur *%s* dengan sisa baki debet *%s* akan memasuki tanggal komitmen pada *%s*.\n\n"+
+					"Mohon dapat melakukan penyetoran sebelum pukul 17:00 WIB untuk menjaga kualitas kredit tetap lancar.\n\n"+
 					"Jika telah melakukan pembayaran, abaikan pesan ini. Terima kasih.\n"+
-					"Petugas Pengelola: %s (BUMA Collection Unit)",
-				debtor.DebtorName, debtor.ProductType, debtor.AccountNo, formattedBalance, formattedDate, officerName,
+					"Petugas Account Officer: %s (BUMA Collection Unit)",
+				officerName, debtor.ProductType, debtor.AccountNo, debtor.DebtorName, formattedBalance, formattedDate, officerName,
 			)
 
 		case "urgent":
 			return fmt.Sprintf(
 				"*SURAT PERINGATAN / SOMASI PRA-HUKUM*\n"+
-					"PT BANK UTAMA MANDIRI (BUMA)\n\n"+
-					"Kepada Yth. Debitur: *%s*\n"+
+					"PT BANK MANDIRI (BUMA)\n\n"+
+					"Kepada Yth. Account Officer: *%s*\n"+
+					"Debitur: *%s*\n"+
 					"Fasilitas Kredit: *%s*\n"+
 					"No. Rekening: *%s*\n"+
 					"Total Baki Debet: *%s*\n\n"+
-					"Berdasarkan evaluasi risiko (%s), fasilitas kredit Anda telah dikategorikan DALAM PENAWASAN KHUSUS. Peringatan penagihan resmi telah diproses.\n\n"+
-					"Anda diwajibkan melakukan penyelesaian kewajiban / penyetoran komitmen pada *%s*. Kelalaian pembayaran akan mengakibatkan pelaporan kolektibilitas pada SLIK OJK dan tindakan hukum penanganan agunan.\n\n"+
-					"Segera konfirmasi ke Pengelola: *%s*.",
-				debtor.DebtorName, debtor.ProductType, debtor.AccountNo, formattedBalance, debtor.ExposureTier, formattedDate, officerName,
+					"Berdasarkan evaluasi risiko (%s), fasilitas kredit ini telah dikategorikan DALAM PENAWASAN KHUSUS. Peringatan penagihan resmi telah diproses.\n\n"+
+					"Diwajibkan melakukan penyelesaian kewajiban / penyetoran komitmen pada *%s*. Kelalaian pembayaran akan mengakibatkan pelaporan kolektibilitas pada SLIK OJK dan tindakan hukum penanganan agunan.\n\n"+
+					"Segera konfirmasi ke Account Officer Pengelola: *%s*.",
+				officerName, debtor.DebtorName, debtor.ProductType, debtor.AccountNo, formattedBalance, debtor.ExposureTier, formattedDate, officerName,
 			)
 
 		default: // "firm"
 			return fmt.Sprintf(
 				"PEMBERITAHUAN PENAGIHAN KREDIT - BUMA\n\n"+
-					"Kepada Yth.\n"+
-					"*%s*\n"+
+					"Kepada Yth. Account Officer:\n"+
+					"*%s* (%s)\n"+
+					"Debitur: *%s*\n"+
 					"No. Rekening: *%s*\n\n"+
-					"Diberitahukan bahwa tagihan kewajiban fasilitas kredit *%s* Anda sebesar *%s* telah melewati jatuh tempo. Sesuai catatan komitmen, jadwal pembayaran jatuh pada hari *%s*.\n\n"+
+					"Diberitahukan bahwa tagihan kewajiban fasilitas kredit *%s* sebesar *%s* telah melewati jatuh tempo. Sesuai catatan komitmen, jadwal pembayaran jatuh pada hari *%s*.\n\n"+
 					"Mohon SEGERA melakukan pembayaran melalui rekening penampungan BUMA atau konfirmasi bukti transfer hari ini kepada Account Officer Anda:\n"+
 					"*%s* (%s)\n\n"+
 					"Hubungi Call Center BUMA jika membutuhkan bantuan kendala transaksi.",
-				debtor.DebtorName, debtor.AccountNo, debtor.ProductType, formattedBalance, formattedDate, officerName, pairingTeam,
+				officerName, pairingTeam, debtor.DebtorName, debtor.AccountNo, debtor.ProductType, formattedBalance, formattedDate, officerName, pairingTeam,
 			)
 		}
 
 	case "email":
 		return fmt.Sprintf(
-			"Subjek: [BUMA COLLECTION] Pemberitahuan Kewajiban Kredit No. Rek %s - Yth. %s\n\n"+
+			"Subjek: [Bank Mandiri COLLECTION] Pemberitahuan Kewajiban Kredit No. Rek %s - Yth. Account Officer %s\n\n"+
 				"Kepada Yth.\n"+
+				"Account Officer: %s\n"+
 				"Management / Bp/Ibu %s\n\n"+
 				"Dengan hormat,\n\n"+
-				"Sehubungan dengan fasilitas kredit %s atas nama %s dengan nomor rekening %s, melalui surat ini kami menyampaikan rincian posisi pinjaman Anda per tanggal %s:\n\n"+
+				"Sehubungan dengan fasilitas kredit %s atas nama %s dengan nomor rekening %s, melalui surat ini kami menyampaikan rincian posisi pinjaman per tanggal %s:\n\n"+
+				"- Account Officer: %s\n"+
 				"- Nama Debitur: %s\n"+
 				"- No. Rekening: %s\n"+
 				"- Jenis Fasilitas: %s\n"+
@@ -98,15 +102,15 @@ func GenerateCollectionWording(debtor domain.DebtorAccount, channel string, tone
 				"Hormat kami,\n"+
 				"PT Bank Utama Mandiri (BUMA)\n"+
 				"Divisi Special Asset Management & Collection",
-			debtor.AccountNo, debtor.DebtorName, debtor.DebtorName, debtor.ProductType, debtor.DebtorName, debtor.AccountNo, todayStr,
-			debtor.DebtorName, debtor.AccountNo, debtor.ProductType, formattedBalance, formattedDate, officerName, pairingTeam,
+			debtor.AccountNo, officerName, officerName, debtor.DebtorName, debtor.ProductType, debtor.DebtorName, debtor.AccountNo, todayStr,
+			officerName, debtor.DebtorName, debtor.AccountNo, debtor.ProductType, formattedBalance, formattedDate, officerName, pairingTeam,
 		)
 
 	default: // "call" / "sms"
 		return fmt.Sprintf(
 			"[SCRIPT TELEPON / SMS BUMA]\n"+
-				"Halo Bp/Ibu %s, saya %s dari BUMA. Mengonfirmasi janji bayar fasilitas %s No. Rek %s (Baki debet %s) pada tanggal %s. Mohon dipastikan dana tersedia sebelum pukul 15.00 WIB. Terima kasih.",
-			debtor.DebtorName, officerName, debtor.ProductType, debtor.AccountNo, formattedBalance, formattedDate,
+				"Halo Bp/Ibu Account Officer %s, mengonfirmasi janji bayar debitur %s fasilitas %s No. Rek %s (Baki debet %s) pada tanggal %s. Mohon dipastikan dana tersedia sebelum pukul 15.00 WIB. Terima kasih.",
+			officerName, debtor.DebtorName, debtor.ProductType, debtor.AccountNo, formattedBalance, formattedDate,
 		)
 	}
 }
