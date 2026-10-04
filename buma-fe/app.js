@@ -1031,7 +1031,8 @@ function openWordingModal(debtorId) {
   state.activeWordingTone = debtor.tierEksposur === "Tier 1" ? "urgent" : "firm";
 
   // Update modal header & snapshot
-  document.getElementById("wordingDebtorName").textContent = debtor.namaDebitur;
+  const officerName = debtor.pengelola || debtor.officerName || debtor.namaDebitur || "-";
+  document.getElementById("wordingDebtorName").textContent = officerName;
   document.getElementById("wordingAccNo").textContent = debtor.noRekening;
   document.getElementById("wordingBakiDebet").textContent = formatIDR(debtor.bakiDebet);
   document.getElementById("wordingTierBadge").innerHTML = getTierBadgeHTML(debtor.tierEksposur);
@@ -1063,63 +1064,68 @@ function generateAndSetWordingText() {
   const tone = state.activeWordingTone;
   const channel = state.activeWordingChannel;
   const textarea = document.getElementById("wordingTextarea");
+  const officer = debtor.pengelola || debtor.officerName || "Account Officer";
 
   let text = "";
 
   if (channel === "whatsapp") {
     if (tone === "soft") {
-      text = `Yth. Bapak/Ibu ${debtor.namaDebitur},
+      text = `Yth. Bapak/Ibu Account Officer ${officer},
 
-Selamat pagi/siang. Kami dari Tim Collection PT Bank Utama Mandiri (Bank Mandiri) menginfokan bahwa kewajiban angsuran kredit Anda (${debtor.produk}) No. Rekening: *${debtor.noRekening}* dengan sisa baki debet *${formatIDR(debtor.bakiDebet)}* akan memasuki tanggal komitmen pada *${formatDate(debtor.tglKomitmen)}*.
+Selamat pagi/siang. Kami dari Tim Collection PT Bank Utama Mandiri (Bank Mandiri) menginfokan bahwa kewajiban angsuran kredit (${debtor.produk}) No. Rekening: *${debtor.noRekening}* atas nama debitur *${debtor.namaDebitur}* dengan sisa baki debet *${formatIDR(debtor.bakiDebet)}* akan memasuki tanggal komitmen pada *${formatDate(debtor.tglKomitmen)}*.
 
-Mohon dapat melakukan penyetoran sebelum pukul 17:00 WIB untuk menjaga kualitas kredit Anda tetap lancar.
+Mohon dapat melakukan penyetoran sebelum pukul 17:00 WIB untuk menjaga kualitas kredit tetap lancar.
 
 Jika telah melakukan pembayaran, abaikan pesan ini. Terima kasih.
-Petugas Pengelola: ${debtor.pengelola} (Bank Mandiri Collection Unit)`;
+Petugas Account Officer: ${officer} (Bank Mandiri Collection Unit)`;
     } else if (tone === "firm") {
       text = `PEMBERITAHUAN PENAGIHAN KREDIT - Bank Mandiri
 
-Kepada Yth.
-*${debtor.namaDebitur}*
+Kepada Yth. Account Officer:
+*${officer}* (${debtor.pairing || 'Desk Collection'})
+Debitur: *${debtor.namaDebitur}*
 No. Rekening: *${debtor.noRekening}*
 
-Diberitahukan bahwa tagihan kewajiban fasilitas kredit *${debtor.produk}* Anda sebesar *${formatIDR(debtor.bakiDebet)}* telah melewati jatuh tempo. Sesuai catatan komitmen, jadwal pembayaran jatuh pada hari *${formatDate(debtor.tglKomitmen)}*.
+Diberitahukan bahwa tagihan kewajiban fasilitas kredit *${debtor.produk}* sebesar *${formatIDR(debtor.bakiDebet)}* telah melewati jatuh tempo. Sesuai catatan komitmen, jadwal pembayaran jatuh pada hari *${formatDate(debtor.tglKomitmen)}*.
 
 Mohon SEGERA melakukan pembayaran melalui rekening penampungan Bank Mandiri atau konfirmasi bukti transfer hari ini kepada Account Officer Anda:
-*${debtor.pengelola}* (${debtor.pairing})
+*${officer}* (${debtor.pairing || 'Desk Collection'})
 
 Hubungi Call Center Bank Mandiri jika membutuhkan bantuan kendala transaksi.`;
     } else { // urgent / legal
       text = `*SURAT PERINGATAN / SOMASI PRA-HUKUM*
 PT BANK UTAMA MANDIRI (Bank Mandiri)
 
-Kepada Yth. Debitur: *${debtor.namaDebitur}*
+Kepada Yth. Account Officer: *${officer}*
+Debitur: *${debtor.namaDebitur}*
 Fasilitas Kredit: *${debtor.produk}*
 No. Rekening: *${debtor.noRekening}*
 Total Baki Debet: *${formatIDR(debtor.bakiDebet)}*
 
-Berdasarkan evaluasi risiko (${debtor.tierEksposur}), fasilitas kredit Anda telah dikategorikan DALAM PENAWASAN KHUSUS. Peringatan penagihan resmi telah diproses.
+Berdasarkan evaluasi risiko (${debtor.tierEksposur}), fasilitas kredit ini telah dikategorikan DALAM PENAWASAN KHUSUS. Peringatan penagihan resmi telah diproses.
 
-Anda diwajibkan melakukan penyelesaian kewajiban / penyetoran komitmen pada *${formatDate(debtor.tglKomitmen)}*. Kelalaian pembayaran akan mengakibatkan pelaporan kolektibilitas pada SLIK OJK dan tindakan hukum penanganan agunan.
+Diwajibkan melakukan penyelesaian kewajiban / penyetoran komitmen pada *${formatDate(debtor.tglKomitmen)}*. Kelalaian pembayaran akan mengakibatkan pelaporan kolektibilitas pada SLIK OJK dan tindakan hukum penanganan agunan.
 
-Segera konfirmasi ke Pengelola: *${debtor.pengelola}*.`;
+Segera konfirmasi ke Account Officer Pengelola: *${officer}*.`;
     }
   } else if (channel === "email") {
-    text = `Subjek: [Bank Mandiri COLLECTION] Pemberitahuan Kewajiban Kredit No. Rek ${debtor.noRekening} - Yth. ${debtor.namaDebitur}
+    text = `Subjek: [Bank Mandiri COLLECTION] Pemberitahuan Kewajiban Kredit No. Rek ${debtor.noRekening} - Yth. Account Officer ${officer}
 
 Kepada Yth.
+Account Officer: ${officer}
 Management / Bp/Ibu ${debtor.namaDebitur}
 
 Dengan hormat,
 
 Sehubungan dengan fasilitas kredit ${debtor.produk} atas nama ${debtor.namaDebitur} dengan nomor rekening ${debtor.noRekening}, melalui surat ini kami menyampaikan rincian posisi pinjaman Anda per tanggal ${formatDate(getTodayISO())}:
 
+- Account Officer: ${officer}
 - Nama Debitur: ${debtor.namaDebitur}
 - No. Rekening: ${debtor.noRekening}
 - Jenis Fasilitas: ${debtor.produk}
 - Baki Debet Pinjaman: ${formatIDR(debtor.bakiDebet)}
 - Tanggal Komitmen Bayar: ${formatDate(debtor.tglKomitmen)}
-- Tim Pengelola: ${debtor.pengelola} (${debtor.pairing})
+- Tim Pengelola: ${officer} (${debtor.pairing || 'Desk Collection'})
 
 Dimohon untuk dapat melakukan penyetoran dana ke rekening efektif tepat pada tanggal komitmen yang disepakati.
 
@@ -1130,7 +1136,7 @@ PT Bank Utama Mandiri (Bank Mandiri)
 Divisi Special Asset Management & Collection`;
   } else { // SMS / Call script
     text = `[SCRIPT TELEPON / SMS Bank Mandiri]
-Halo Bp/Ibu ${debtor.namaDebitur}, saya ${debtor.pengelola} dari Bank Mandiri. Mengonfirmasi janji bayar fasilitas ${debtor.produk} No. Rek ${debtor.noRekening} (Baki debet ${formatIDR(debtor.bakiDebet)}) pada tanggal ${formatDate(debtor.tglKomitmen)}. Mohon dipastikan dana tersedia sebelum pukul 15.00 WIB. Terima kasih.`;
+Halo Bp/Ibu Account Officer ${officer}, mengonfirmasi janji bayar debitur ${debtor.namaDebitur} fasilitas ${debtor.produk} No. Rek ${debtor.noRekening} (Baki debet ${formatIDR(debtor.bakiDebet)}) pada tanggal ${formatDate(debtor.tglKomitmen)}. Mohon dipastikan dana tersedia sebelum pukul 15.00 WIB. Terima kasih.`;
   }
 
   textarea.value = text;
