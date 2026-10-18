@@ -9,6 +9,7 @@
 const INITIAL_DEBTORS = [
   {
     id: "DBT-001",
+    cif: "11002022001",
     noRekening: "1029384756",
     namaDebitur: "PT Nusantara Jaya Abadi",
     produk: "KMK",
@@ -24,6 +25,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-002",
+    cif: "11002022002",
     noRekening: "2093847561",
     namaDebitur: "Hendra Wijaya",
     produk: "KPR",
@@ -39,6 +41,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-003",
+    cif: "11002022003",
     noRekening: "3084756192",
     namaDebitur: "CV Karya Utama Mandiri",
     produk: "KI",
@@ -54,6 +57,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-004",
+    cif: "11002022004",
     noRekening: "4075619283",
     namaDebitur: "Dewi Lestari",
     produk: "KKM",
@@ -69,6 +73,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-005",
+    cif: "11002022005",
     noRekening: "5061928374",
     namaDebitur: "Bambang Sukoco",
     produk: "KPR",
@@ -84,6 +89,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-006",
+    cif: "11002022006",
     noRekening: "6019283745",
     namaDebitur: "PT Sinar Agro Makmur",
     produk: "KMK",
@@ -99,6 +105,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-007",
+    cif: "11002022007",
     noRekening: "7092837465",
     namaDebitur: "Agus Pratama",
     produk: "KKM",
@@ -114,6 +121,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-008",
+    cif: "11002022008",
     noRekening: "8028374651",
     namaDebitur: "Rina Kusuma",
     produk: "KPR",
@@ -129,6 +137,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-009",
+    cif: "11002022009",
     noRekening: "9037465182",
     namaDebitur: "PT Megah Konstruksi Indonesia",
     produk: "KI",
@@ -144,6 +153,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-010",
+    cif: "11002022010",
     noRekening: "1147561928",
     namaDebitur: "Eko Prasetyo",
     produk: "KMK",
@@ -159,6 +169,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-011",
+    cif: "11002022011",
     noRekening: "2256192837",
     namaDebitur: "Maya Indah",
     produk: "KKM",
@@ -174,6 +185,7 @@ const INITIAL_DEBTORS = [
   },
   {
     id: "DBT-012",
+    cif: "11002022012",
     noRekening: "3361928374",
     namaDebitur: "Fajri Ramadhan",
     produk: "KPR",
@@ -480,7 +492,8 @@ function applyFiltersAndSort() {
     // Search query match
     const matchSearch = !query ||
       debtor.namaDebitur.toLowerCase().includes(query) ||
-      debtor.noRekening.toLowerCase().includes(query);
+      debtor.noRekening.toLowerCase().includes(query) ||
+      (debtor.cif && debtor.cif.toLowerCase().includes(query));
 
     // Tier match
     const matchTier = state.selectedTier === "ALL" || debtor.tierEksposur === state.selectedTier;
@@ -686,6 +699,7 @@ async function fetchCommitmentsFromApi() {
 
           return {
             id: c.id || (existing ? existing.id : "CMT-" + c.account_no),
+            cif: c.cif || (existing ? existing.cif : "") || "",
             noRekening: c.account_no,
             namaDebitur: c.debtor_name || (existing ? existing.namaDebitur : `Debitur (${c.account_no})`),
             produk: c.product || (existing ? existing.produk : "KMK"),
@@ -847,6 +861,17 @@ function renderTable() {
 
     html += `
       <tr class="${rowClass}">
+        <!-- CIF -->
+        <td class="py-3.5 px-4 font-mono font-medium text-slate-700 whitespace-nowrap">
+          <div class="flex items-center gap-1.5">
+            <span>${debtor.cif || "-"}</span>
+            ${debtor.cif && debtor.cif !== "-" ? `
+            <button onclick="copyText('${debtor.cif}', 'CIF ${debtor.cif}')" class="text-amber-600 hover:text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity" title="Salin CIF">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            </button>` : ''}
+          </div>
+        </td>
+
         <!-- No Rekening -->
         <td class="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">
           <div class="flex items-center gap-1.5">
@@ -860,7 +885,7 @@ function renderTable() {
         <!-- Nama Debitur -->
         <td class="py-3.5 px-4">
           <div class="font-bold text-slate-900 leading-tight">${debtor.namaDebitur}</div>
-          <div class="text-[11px] text-slate-500 mt-0.5">ID: ${debtor.id} | Telp: ${debtor.phone}</div>
+          <div class="text-[11px] text-slate-500 mt-0.5">${debtor.cif && debtor.cif !== '-' ? `CIF: ${debtor.cif} | ` : ''}ID: ${debtor.id} | Telp: ${debtor.phone}</div>
         </td>
 
         <!-- Produk -->
@@ -1033,6 +1058,9 @@ function openWordingModal(debtorId) {
   // Update modal header & snapshot
   const officerName = debtor.pengelola || debtor.officerName || debtor.namaDebitur || "-";
   document.getElementById("wordingDebtorName").textContent = officerName;
+  if (document.getElementById("wordingCif")) {
+    document.getElementById("wordingCif").textContent = debtor.cif || "-";
+  }
   document.getElementById("wordingAccNo").textContent = debtor.noRekening;
   document.getElementById("wordingBakiDebet").textContent = formatIDR(debtor.bakiDebet);
   document.getElementById("wordingTierBadge").innerHTML = getTierBadgeHTML(debtor.tierEksposur);
@@ -1222,6 +1250,9 @@ async function openCommitmentModal(debtorId) {
 
   // Update header context
   document.getElementById("commitmentDebtorName").textContent = debtor.namaDebitur;
+  if (document.getElementById("commitmentCif")) {
+    document.getElementById("commitmentCif").textContent = debtor.cif || "-";
+  }
   document.getElementById("commitmentAccNo").textContent = debtor.noRekening;
   document.getElementById("commitmentBakiDebet").textContent = formatIDR(debtor.bakiDebet);
   document.getElementById("commitmentDebtorId").value = debtor.id;
@@ -1314,6 +1345,7 @@ async function handleCommitmentSubmit(e) {
       reason: newStatus,
       remarks: newKeterangan,
       nominal: newNominal,
+      cif: targetDebtor.cif || "",
       officer_id: newOfficerId,
       officer_pair_id: newOfficerPairId,
       credit_limit: newLimit,
@@ -1355,8 +1387,10 @@ async function handleCommitmentSubmit(e) {
 // ==========================================
 
 function getCreateCommitmentPayload() {
+  const cifVal = document.getElementById("createCif")?.value.trim() || "";
   return {
     account_no: document.getElementById("createAccountNo")?.value.trim() || "",
+    cif: cifVal,
     debtor_name: document.getElementById("createDebtorName")?.value.trim() || "",
     officer_id: document.getElementById("createOfficerID")?.value.trim() || "",
     officer_pair_id: document.getElementById("createOfficerPairID")?.value.trim() || "",
@@ -1437,12 +1471,16 @@ async function handleCreateCommitmentApiSubmit() {
     // Sync to local FE state table
     const existingIndex = state.debtors.findIndex(d => d.noRekening === (item.account_no || payload.account_no));
     if (existingIndex !== -1) {
+      if (item.cif || payload.cif) {
+        state.debtors[existingIndex].cif = item.cif || payload.cif;
+      }
       state.debtors[existingIndex].tglKomitmen = item.commitment_date || payload.commitment_date;
       state.debtors[existingIndex].statusKomitmen = item.status || payload.status;
       state.debtors[existingIndex].keterangan = item.remarks || payload.remarks;
     } else {
       state.debtors.unshift({
         id: createdID,
+        cif: item.cif || payload.cif || "-",
         noRekening: item.account_no || payload.account_no,
         namaDebitur: payload.debtor_name || "Debitur Baru",
         produk: payload.product || "KMK",
