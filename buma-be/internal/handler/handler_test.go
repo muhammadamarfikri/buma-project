@@ -381,5 +381,100 @@ func TestGetAllCommitmentsWithFilters(t *testing.T) {
 	})
 }
 
+func TestCommitmentWithCIFEndpoints(t *testing.T) {
+	ts := setupTestServer()
+
+	t.Run("POST /api/v1/commitments with CIF", func(t *testing.T) {
+		body := []byte(`{
+			"account_no": "9998887771",
+			"cif": "11002022099",
+			"debtor_name": "PT Cipta Integra Finance",
+			"officer_id": "OFF-001",
+			"officer_pair_id": "OFF-002",
+			"product": "KMK",
+			"exposure_tier": "Tier 1",
+			"credit_limit": 5000000000,
+			"outstanding_balance": 4200000000,
+			"commitment_date": "2026-10-25",
+			"status": "Janji Bayar (PTP)",
+			"reason": "Pembayaran termin kontrak",
+			"remarks": "Debitur berjanji melunasi termin pertama"
+		}`)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/commitments", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		ts.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusCreated {
+			t.Fatalf("Expected status 201 Created, got %d: %s", rec.Code, rec.Body.String())
+		}
+
+		var res handler.APIResponse
+		if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		dataMap, ok := res.Data.(map[string]interface{})
+		if !ok {
+			t.Fatalf("Expected map in response data, got %T", res.Data)
+		}
+		if dataMap["cif"] != "11002022099" {
+			t.Errorf("Expected cif 11002022099, got %v", dataMap["cif"])
+		}
+	})
+
+	t.Run("GET /api/v1/commitments?cif=11002022099", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/commitments?cif=11002022099", nil)
+		rec := httptest.NewRecorder()
+
+		ts.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("Expected status 200 OK, got %d", rec.Code)
+		}
+
+		var res handler.APIResponse
+		if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		dataMap, ok := res.Data.(map[string]interface{})
+		if !ok {
+			t.Fatalf("Expected map in response data")
+		}
+		list, ok := dataMap["data"].([]interface{})
+		if !ok || len(list) == 0 {
+			t.Fatalf("Expected at least 1 record for cif 11002022099")
+		}
+	})
+
+	t.Run("GET /api/v1/monitoring?cif=11002022001", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/monitoring?cif=11002022001", nil)
+		rec := httptest.NewRecorder()
+
+		ts.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("Expected status 200 OK, got %d", rec.Code)
+		}
+
+		var res struct {
+			Data []map[string]interface{} `json:"data"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		if len(res.Data) == 0 {
+			t.Fatalf("Expected monitoring data for cif 11002022001")
+		}
+		if res.Data[0]["cif"] != "11002022001" {
+			t.Errorf("Expected debtor cif 11002022001, got %v", res.Data[0]["cif"])
+		}
+	})
+}
+
 
 

@@ -6,6 +6,7 @@ import "time"
 type DebtorAccount struct {
 	AccountNo          string    `json:"noRekening"`
 	DebtorID           string    `json:"id"`
+	Cif                string    `json:"cif"`
 	DebtorName         string    `json:"namaDebitur"`
 	ProductType        string    `json:"produk"`
 	CreditLimit        float64   `json:"limit"`
@@ -28,6 +29,7 @@ type DebtorFilter struct {
 	Page        int    `json:"page"`
 	Limit       int    `json:"limit"`
 	Search      string `json:"search"`
+	Cif         string `json:"cif"`
 	Tier        string `json:"tier"`
 	OfficerID   string `json:"officer_id"`
 	OfficerName string `json:"pengelola"`

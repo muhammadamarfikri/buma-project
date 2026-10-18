@@ -66,6 +66,7 @@ func (r *debtorRepository) GetMonitoringData(ctx context.Context, filter domain.
 		SELECT 
 			d.account_no,
 			d.debtor_id,
+			COALESCE(d.cif, '') as cif,
 			d.debtor_name,
 			d.product_type,
 			d.credit_limit,
@@ -99,8 +100,14 @@ func (r *debtorRepository) GetMonitoringData(ctx context.Context, filter domain.
 
 	if filter.Search != "" {
 		searchTerm := "%" + strings.ToLower(filter.Search) + "%"
-		whereClauses = append(whereClauses, fmt.Sprintf("(LOWER(d.debtor_name) LIKE $%d OR LOWER(d.account_no) LIKE $%d)", argIdx, argIdx))
+		whereClauses = append(whereClauses, fmt.Sprintf("(LOWER(d.debtor_name) LIKE $%d OR LOWER(d.account_no) LIKE $%d OR LOWER(COALESCE(d.cif, '')) LIKE $%d)", argIdx, argIdx, argIdx))
 		args = append(args, searchTerm)
+		argIdx++
+	}
+
+	if filter.Cif != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("d.cif = $%d", argIdx))
+		args = append(args, filter.Cif)
 		argIdx++
 	}
 
@@ -146,6 +153,8 @@ func (r *debtorRepository) GetMonitoringData(ctx context.Context, filter domain.
 	switch filter.SortBy {
 	case "noRekening":
 		orderCol = "d.account_no"
+	case "cif":
+		orderCol = "d.cif"
 	case "namaDebitur":
 		orderCol = "d.debtor_name"
 	case "limit":
@@ -189,6 +198,7 @@ func (r *debtorRepository) GetMonitoringData(ctx context.Context, filter domain.
 		err := rows.Scan(
 			&d.AccountNo,
 			&d.DebtorID,
+			&d.Cif,
 			&d.DebtorName,
 			&d.ProductType,
 			&d.CreditLimit,
@@ -251,6 +261,7 @@ func (r *debtorRepository) GetDebtorByAccountNo(ctx context.Context, accountNo s
 		SELECT 
 			d.account_no,
 			d.debtor_id,
+			COALESCE(d.cif, '') as cif,
 			d.debtor_name,
 			d.product_type,
 			d.credit_limit,
@@ -288,6 +299,7 @@ func (r *debtorRepository) GetDebtorByAccountNo(ctx context.Context, accountNo s
 	err := r.db.QueryRowContext(ctx, query, accountNo).Scan(
 		&d.AccountNo,
 		&d.DebtorID,
+		&d.Cif,
 		&d.DebtorName,
 		&d.ProductType,
 		&d.CreditLimit,

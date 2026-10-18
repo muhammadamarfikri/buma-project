@@ -26,10 +26,15 @@ func (r *commitmentRepository) CreateCommitment(ctx context.Context, req domain.
 		nominalVal = req.CreditLimit
 	}
 
+	cifVal := strings.TrimSpace(req.Cif)
+	if cifVal == "" && r.db != nil {
+		_ = r.db.QueryRowContext(ctx, "SELECT COALESCE(cif, '') FROM debtor_accounts WHERE account_no = $1", req.AccountNo).Scan(&cifVal)
+	}
+
 	query := `
-		INSERT INTO collection_commitments (account_no, commitment_date, officer_id, officer_pair_id, status, reason, remarks, nominal, credit_limit, outstanding_balance, exposure_tier, product, debtor_name, created_at, updated_at)
-		VALUES ($1, CASE WHEN $2 <> '' THEN $2::DATE ELSE CURRENT_DATE END, $3, $4, $5, $6, $7, $8::NUMERIC, $9::NUMERIC, $10::NUMERIC, $11, $12, $13, NOW(), NOW())
-		RETURNING id, account_no, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0::NUMERIC), COALESCE(credit_limit, 0::NUMERIC), COALESCE(outstanding_balance, 0::NUMERIC), COALESCE(exposure_tier, ''), COALESCE(product, ''), COALESCE(debtor_name, ''), created_at, updated_at
+		INSERT INTO collection_commitments (account_no, cif, commitment_date, officer_id, officer_pair_id, status, reason, remarks, nominal, credit_limit, outstanding_balance, exposure_tier, product, debtor_name, created_at, updated_at)
+		VALUES ($1, $2, CASE WHEN $3 <> '' THEN $3::DATE ELSE CURRENT_DATE END, $4, $5, $6, $7, $8, $9::NUMERIC, $10::NUMERIC, $11::NUMERIC, $12, $13, $14, NOW(), NOW())
+		RETURNING id, account_no, COALESCE(cif, ''), TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0::NUMERIC), COALESCE(credit_limit, 0::NUMERIC), COALESCE(outstanding_balance, 0::NUMERIC), COALESCE(exposure_tier, ''), COALESCE(product, ''), COALESCE(debtor_name, ''), created_at, updated_at
 	`
 
 	var c domain.CollectionCommitment
@@ -37,6 +42,7 @@ func (r *commitmentRepository) CreateCommitment(ctx context.Context, req domain.
 		ctx,
 		query,
 		req.AccountNo,
+		cifVal,
 		req.CommitmentDate,
 		req.OfficerID,
 		req.OfficerPairID,
@@ -52,6 +58,7 @@ func (r *commitmentRepository) CreateCommitment(ctx context.Context, req domain.
 	).Scan(
 		&c.ID,
 		&c.AccountNo,
+		&c.Cif,
 		&c.CommitmentDate,
 		&c.OfficerID,
 		&c.OfficerPairID,
@@ -73,16 +80,17 @@ func (r *commitmentRepository) CreateCommitment(ctx context.Context, req domain.
 	}
 
 	upsertDebtorQuery := `
-		INSERT INTO debtor_accounts (account_no, debtor_id, debtor_name, product_type, credit_limit, outstanding_balance, exposure_tier, phone, created_at, updated_at)
-		VALUES ($1, 'D-' || $1, COALESCE(NULLIF($2, ''), 'Debtor ' || $1), COALESCE(NULLIF($3, ''), 'KMK'), $4::NUMERIC, $5::NUMERIC, COALESCE(NULLIF($6, ''), 'Tier 1'), '-', NOW(), NOW())
+		INSERT INTO debtor_accounts (account_no, debtor_id, cif, debtor_name, product_type, credit_limit, outstanding_balance, exposure_tier, phone, created_at, updated_at)
+		VALUES ($1, 'D-' || $1, $2, COALESCE(NULLIF($3, ''), 'Debtor ' || $1), COALESCE(NULLIF($4, ''), 'KMK'), $5::NUMERIC, $6::NUMERIC, COALESCE(NULLIF($7, ''), 'Tier 1'), '-', NOW(), NOW())
 		ON CONFLICT (account_no) DO UPDATE 
-		SET debtor_name = COALESCE(NULLIF(EXCLUDED.debtor_name, ''), debtor_accounts.debtor_name),
+		SET cif = COALESCE(NULLIF(EXCLUDED.cif, ''), debtor_accounts.cif),
+		    debtor_name = COALESCE(NULLIF(EXCLUDED.debtor_name, ''), debtor_accounts.debtor_name),
 		    credit_limit = CASE WHEN EXCLUDED.credit_limit > 0 THEN EXCLUDED.credit_limit ELSE debtor_accounts.credit_limit END,
 		    outstanding_balance = CASE WHEN EXCLUDED.outstanding_balance > 0 THEN EXCLUDED.outstanding_balance ELSE debtor_accounts.outstanding_balance END,
 		    exposure_tier = COALESCE(NULLIF(EXCLUDED.exposure_tier, ''), debtor_accounts.exposure_tier),
 		    updated_at = NOW()
 	`
-	_, _ = r.db.ExecContext(ctx, upsertDebtorQuery, req.AccountNo, req.DebtorName, req.Product, req.CreditLimit, req.OutstandingBalance, req.ExposureTier)
+	_, _ = r.db.ExecContext(ctx, upsertDebtorQuery, req.AccountNo, cifVal, req.DebtorName, req.Product, req.CreditLimit, req.OutstandingBalance, req.ExposureTier)
 
 	return &c, nil
 }
@@ -92,6 +100,8 @@ func (r *commitmentRepository) UpdateCommitmentByReason(ctx context.Context, req
 	if nominalVal <= 0 {
 		nominalVal = req.CreditLimit
 	}
+
+	cifVal := strings.TrimSpace(req.Cif)
 
 	query := `
 		UPDATE collection_commitments
@@ -106,9 +116,10 @@ func (r *commitmentRepository) UpdateCommitmentByReason(ctx context.Context, req
 		    exposure_tier = COALESCE(NULLIF($9, ''), exposure_tier),
 		    product = COALESCE(NULLIF($10, ''), product),
 		    debtor_name = COALESCE(NULLIF($11, ''), debtor_name),
+		    cif = COALESCE(NULLIF($12, ''), cif),
 		    updated_at = NOW()
-		WHERE account_no = $12 AND LOWER(TRIM(reason)) = LOWER(TRIM($13))
-		RETURNING id, account_no, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0::NUMERIC), COALESCE(credit_limit, 0::NUMERIC), COALESCE(outstanding_balance, 0::NUMERIC), COALESCE(exposure_tier, ''), COALESCE(product, ''), COALESCE(debtor_name, ''), created_at, updated_at
+		WHERE account_no = $13 AND LOWER(TRIM(reason)) = LOWER(TRIM($14))
+		RETURNING id, account_no, COALESCE(cif, ''), TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0::NUMERIC), COALESCE(credit_limit, 0::NUMERIC), COALESCE(outstanding_balance, 0::NUMERIC), COALESCE(exposure_tier, ''), COALESCE(product, ''), COALESCE(debtor_name, ''), created_at, updated_at
 	`
 
 	var c domain.CollectionCommitment
@@ -126,11 +137,13 @@ func (r *commitmentRepository) UpdateCommitmentByReason(ctx context.Context, req
 		req.ExposureTier,
 		req.Product,
 		req.DebtorName,
+		cifVal,
 		req.AccountNo,
 		req.Reason,
 	).Scan(
 		&c.ID,
 		&c.AccountNo,
+		&c.Cif,
 		&c.CommitmentDate,
 		&c.OfficerID,
 		&c.OfficerPairID,
@@ -152,16 +165,17 @@ func (r *commitmentRepository) UpdateCommitmentByReason(ctx context.Context, req
 	}
 
 	upsertDebtorQuery := `
-		INSERT INTO debtor_accounts (account_no, debtor_id, debtor_name, product_type, credit_limit, outstanding_balance, exposure_tier, phone, created_at, updated_at)
-		VALUES ($1, 'D-' || $1, COALESCE(NULLIF($2, ''), 'Debtor ' || $1), COALESCE(NULLIF($3, ''), 'KMK'), $4::NUMERIC, $5::NUMERIC, COALESCE(NULLIF($6, ''), 'Tier 1'), '-', NOW(), NOW())
+		INSERT INTO debtor_accounts (account_no, debtor_id, cif, debtor_name, product_type, credit_limit, outstanding_balance, exposure_tier, phone, created_at, updated_at)
+		VALUES ($1, 'D-' || $1, $2, COALESCE(NULLIF($3, ''), 'Debtor ' || $1), COALESCE(NULLIF($4, ''), 'KMK'), $5::NUMERIC, $6::NUMERIC, COALESCE(NULLIF($7, ''), 'Tier 1'), '-', NOW(), NOW())
 		ON CONFLICT (account_no) DO UPDATE 
-		SET debtor_name = COALESCE(NULLIF(EXCLUDED.debtor_name, ''), debtor_accounts.debtor_name),
+		SET cif = COALESCE(NULLIF(EXCLUDED.cif, ''), debtor_accounts.cif),
+		    debtor_name = COALESCE(NULLIF(EXCLUDED.debtor_name, ''), debtor_accounts.debtor_name),
 		    credit_limit = CASE WHEN EXCLUDED.credit_limit > 0 THEN EXCLUDED.credit_limit ELSE debtor_accounts.credit_limit END,
 		    outstanding_balance = CASE WHEN EXCLUDED.outstanding_balance > 0 THEN EXCLUDED.outstanding_balance ELSE debtor_accounts.outstanding_balance END,
 		    exposure_tier = COALESCE(NULLIF(EXCLUDED.exposure_tier, ''), debtor_accounts.exposure_tier),
 		    updated_at = NOW()
 	`
-	_, _ = r.db.ExecContext(ctx, upsertDebtorQuery, req.AccountNo, req.DebtorName, req.Product, req.CreditLimit, req.OutstandingBalance, req.ExposureTier)
+	_, _ = r.db.ExecContext(ctx, upsertDebtorQuery, req.AccountNo, cifVal, req.DebtorName, req.Product, req.CreditLimit, req.OutstandingBalance, req.ExposureTier)
 
 	return &c, nil
 }
@@ -176,7 +190,7 @@ func (r *commitmentRepository) CreateOrUpdateCommitment(ctx context.Context, req
 
 func (r *commitmentRepository) GetCommitmentsByAccountNo(ctx context.Context, accountNo string) ([]domain.CollectionCommitment, error) {
 	query := `
-		SELECT id, account_no, debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
+		SELECT id, account_no, COALESCE(cif, ''), debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
 		FROM collection_commitments
 		WHERE account_no = $1
 		ORDER BY created_at DESC
@@ -191,7 +205,7 @@ func (r *commitmentRepository) GetCommitmentsByAccountNo(ctx context.Context, ac
 	var list []domain.CollectionCommitment
 	for rows.Next() {
 		var c domain.CollectionCommitment
-		if err := rows.Scan(&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.AccountNo, &c.Cif, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -206,7 +220,7 @@ func (r *commitmentRepository) GetCommitmentsByAccountNo(ctx context.Context, ac
 
 func (r *commitmentRepository) GetCommitmentsByDate(ctx context.Context, dateStr string) ([]domain.CollectionCommitment, error) {
 	query := `
-		SELECT id, account_no, debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
+		SELECT id, account_no, COALESCE(cif, ''), debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
 		FROM collection_commitments
 		WHERE commitment_date = $1
 		ORDER BY created_at DESC
@@ -221,7 +235,7 @@ func (r *commitmentRepository) GetCommitmentsByDate(ctx context.Context, dateStr
 	var list []domain.CollectionCommitment
 	for rows.Next() {
 		var c domain.CollectionCommitment
-		if err := rows.Scan(&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.AccountNo, &c.Cif, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -252,6 +266,12 @@ func (r *commitmentRepository) GetCommitments(ctx context.Context, filter domain
 		argIdx++
 	}
 
+	if filter.Cif != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("(c.cif = $%d OR d.cif = $%d)", argIdx, argIdx))
+		args = append(args, filter.Cif)
+		argIdx++
+	}
+
 	if filter.Status != "" && filter.Status != "ALL" {
 		whereClauses = append(whereClauses, fmt.Sprintf("c.status = $%d", argIdx))
 		args = append(args, filter.Status)
@@ -278,7 +298,7 @@ func (r *commitmentRepository) GetCommitments(ctx context.Context, filter domain
 
 	if filter.Search != "" {
 		searchTerm := "%" + filter.Search + "%"
-		whereClauses = append(whereClauses, fmt.Sprintf("(c.account_no ILIKE $%d OR c.status ILIKE $%d OR COALESCE(c.reason,'') ILIKE $%d OR COALESCE(c.remarks,'') ILIKE $%d OR COALESCE(d.debtor_name,'') ILIKE $%d OR COALESCE(o.full_name,'') ILIKE $%d)", argIdx, argIdx, argIdx, argIdx, argIdx, argIdx))
+		whereClauses = append(whereClauses, fmt.Sprintf("(c.account_no ILIKE $%d OR COALESCE(c.cif, '') ILIKE $%d OR COALESCE(d.cif, '') ILIKE $%d OR c.status ILIKE $%d OR COALESCE(c.reason,'') ILIKE $%d OR COALESCE(c.remarks,'') ILIKE $%d OR COALESCE(d.debtor_name,'') ILIKE $%d OR COALESCE(o.full_name,'') ILIKE $%d)", argIdx, argIdx, argIdx, argIdx, argIdx, argIdx, argIdx, argIdx))
 		args = append(args, searchTerm)
 		argIdx++
 	}
@@ -311,6 +331,8 @@ func (r *commitmentRepository) GetCommitments(ctx context.Context, filter domain
 	switch filter.SortBy {
 	case "account_no", "noRekening":
 		orderCol = "c.account_no"
+	case "cif":
+		orderCol = "COALESCE(c.cif, d.cif)"
 	case "commitment_date", "tglKomitmen":
 		orderCol = "c.commitment_date"
 	case "status", "statusKomitmen":
@@ -330,7 +352,7 @@ func (r *commitmentRepository) GetCommitments(ctx context.Context, filter domain
 	var list []domain.CollectionCommitment
 	if r.db != nil {
 		dataQuery := fmt.Sprintf(`
-			SELECT c.id, c.account_no, c.debtor_name, TO_CHAR(c.commitment_date, 'YYYY-MM-DD'), COALESCE(c.officer_id, ''), COALESCE(c.officer_pair_id, ''), c.status, COALESCE(c.reason, ''), COALESCE(c.remarks, ''), COALESCE(c.nominal, 0), COALESCE(c.credit_limit, 0), COALESCE(c.outstanding_balance, 0), COALESCE(c.exposure_tier, ''), COALESCE(c.product, ''), c.created_at, c.updated_at
+			SELECT c.id, c.account_no, COALESCE(c.cif, d.cif, '') as cif, c.debtor_name, TO_CHAR(c.commitment_date, 'YYYY-MM-DD'), COALESCE(c.officer_id, ''), COALESCE(c.officer_pair_id, ''), c.status, COALESCE(c.reason, ''), COALESCE(c.remarks, ''), COALESCE(c.nominal, 0), COALESCE(c.credit_limit, 0), COALESCE(c.outstanding_balance, 0), COALESCE(c.exposure_tier, ''), COALESCE(c.product, ''), c.created_at, c.updated_at
 			FROM collection_commitments c
 			LEFT JOIN debtor_accounts d ON c.account_no = d.account_no
 			LEFT JOIN officers o ON c.officer_id = o.officer_id
@@ -348,7 +370,7 @@ func (r *commitmentRepository) GetCommitments(ctx context.Context, filter domain
 
 		for rows.Next() {
 			var c domain.CollectionCommitment
-			if err := rows.Scan(&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreditLimit, &c.OutstandingBalance, &c.ExposureTier, &c.Product, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			if err := rows.Scan(&c.ID, &c.AccountNo, &c.Cif, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreditLimit, &c.OutstandingBalance, &c.ExposureTier, &c.Product, &c.CreatedAt, &c.UpdatedAt); err != nil {
 				return nil, err
 			}
 			list = append(list, c)
@@ -376,14 +398,14 @@ func (r *commitmentRepository) GetCommitmentByID(ctx context.Context, id string)
 	}
 
 	query := `
-		SELECT id, account_no, c.debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
+		SELECT id, account_no, COALESCE(cif, ''), c.debtor_name, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0), created_at, updated_at
 		FROM collection_commitments
 		WHERE id = $1
 	`
 
 	var c domain.CollectionCommitment
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&c.ID, &c.AccountNo, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt,
+		&c.ID, &c.AccountNo, &c.Cif, &c.DebtorName, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreatedAt, &c.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -402,6 +424,8 @@ func (r *commitmentRepository) UpdateCommitmentByID(ctx context.Context, id stri
 
 	nominalVal := req.Nominal
 
+	cifVal := strings.TrimSpace(req.Cif)
+
 	query := `
 		UPDATE collection_commitments
 		SET commitment_date = CASE WHEN $1 <> '' THEN $1::DATE ELSE commitment_date END,
@@ -415,9 +439,10 @@ func (r *commitmentRepository) UpdateCommitmentByID(ctx context.Context, id stri
 			outstanding_balance = CASE WHEN $9::NUMERIC > 0::NUMERIC THEN $9::NUMERIC ELSE outstanding_balance END,
 			exposure_tier = COALESCE(NULLIF($10, ''), exposure_tier),
 			product = COALESCE(NULLIF($11, ''), product),
+			cif = COALESCE(NULLIF($12, ''), cif),
 			updated_at = NOW()
-		WHERE id::text = $12 OR account_no = $12
-		RETURNING id, account_no, TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0::NUMERIC), COALESCE(credit_limit, 0::NUMERIC), COALESCE(outstanding_balance, 0::NUMERIC), COALESCE(exposure_tier, ''), COALESCE(product, ''), created_at, updated_at
+		WHERE id::text = $13 OR account_no = $13
+		RETURNING id, account_no, COALESCE(cif, ''), TO_CHAR(commitment_date, 'YYYY-MM-DD'), COALESCE(officer_id, ''), COALESCE(officer_pair_id, ''), status, COALESCE(reason, ''), COALESCE(remarks, ''), COALESCE(nominal, 0::NUMERIC), COALESCE(credit_limit, 0::NUMERIC), COALESCE(outstanding_balance, 0::NUMERIC), COALESCE(exposure_tier, ''), COALESCE(product, ''), created_at, updated_at
 	`
 
 	var c domain.CollectionCommitment
@@ -435,9 +460,10 @@ func (r *commitmentRepository) UpdateCommitmentByID(ctx context.Context, id stri
 		req.OutstandingBalance,
 		req.ExposureTier,
 		req.Product,
+		cifVal,
 		id,
 	).Scan(
-		&c.ID, &c.AccountNo, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreditLimit, &c.OutstandingBalance, &c.ExposureTier, &c.Product, &c.CreatedAt, &c.UpdatedAt,
+		&c.ID, &c.AccountNo, &c.Cif, &c.CommitmentDate, &c.OfficerID, &c.OfficerPairID, &c.Status, &c.Reason, &c.Remarks, &c.Nominal, &c.CreditLimit, &c.OutstandingBalance, &c.ExposureTier, &c.Product, &c.CreatedAt, &c.UpdatedAt,
 	)
 
 	if err != nil {
@@ -449,10 +475,11 @@ func (r *commitmentRepository) UpdateCommitmentByID(ctx context.Context, id stri
 		SET credit_limit = CASE WHEN $1::NUMERIC > 0::NUMERIC THEN $1::NUMERIC ELSE credit_limit END,
 		    outstanding_balance = CASE WHEN $2::NUMERIC > 0::NUMERIC THEN $2::NUMERIC ELSE outstanding_balance END,
 		    exposure_tier = COALESCE(NULLIF($3, ''), exposure_tier),
+		    cif = COALESCE(NULLIF($4, ''), cif),
 		    updated_at = NOW()
-		WHERE account_no = $4
+		WHERE account_no = $5
 	`
-	_, _ = r.db.ExecContext(ctx, updateDebtorQuery, req.CreditLimit, req.OutstandingBalance, req.ExposureTier, c.AccountNo)
+	_, _ = r.db.ExecContext(ctx, updateDebtorQuery, req.CreditLimit, req.OutstandingBalance, req.ExposureTier, cifVal, c.AccountNo)
 
 	if req.OfficerID != "" {
 		_, _ = r.db.ExecContext(ctx, `

@@ -19,18 +19,18 @@ type inMemoryDebtorRepo struct {
 
 func NewInMemoryDebtorRepository() repository.DebtorRepository {
 	initial := []domain.DebtorAccount{
-		{AccountNo: "1029384756", DebtorID: "DBT-001", DebtorName: "PT Nusantara Jaya Abadi", ProductType: "KMK", CreditLimit: 5000000000, OutstandingBalance: 4250000000, ExposureTier: "Tier 1", OfficerID: "OFF-001", OfficerName: "Budi Santoso", PairingTeam: "Desk 01", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "Debitur berjanji melunasi cicilan Rp 250jt via transfer sore ini", NominalCommitment: 250000000, Phone: "081298765432"},
-		{AccountNo: "2093847561", DebtorID: "DBT-002", DebtorName: "Hendra Wijaya", ProductType: "KPR", CreditLimit: 1200000000, OutstandingBalance: 980000000, ExposureTier: "Tier 2", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-07", CommitmentStatus: "On Progress/Implementasi", Remarks: "Debitur meminta menghubungi kembali besok jam 10:00 WIB", Phone: "081387654321"},
-		{AccountNo: "3084756192", DebtorID: "DBT-003", DebtorName: "CV Karya Utama Mandiri", ProductType: "KI", CreditLimit: 8500000000, OutstandingBalance: 7100000000, ExposureTier: "Tier 1", OfficerID: "OFF-001", OfficerName: "Budi Santoso", PairingTeam: "Desk 01", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "SP-2 telah dikirimkan. Debitur bersedia setor Rp 500jt", NominalCommitment: 500000000, Phone: "081123456789"},
-		{AccountNo: "4075619283", DebtorID: "DBT-004", DebtorName: "Dewi Lestari", ProductType: "KKM", CreditLimit: 350000000, OutstandingBalance: 210000000, ExposureTier: "Tier 3", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", PairingTeam: "Desk 03", CommitmentDate: "2026-09-10", CommitmentStatus: "On Progress/Implementasi", Remarks: "Pengajuan perpanjangan tenor kredit sedang dalam review komite", Phone: "085678901234"},
-		{AccountNo: "5061928374", DebtorID: "DBT-005", DebtorName: "Bambang Sukoco", ProductType: "KPR", CreditLimit: 750000000, OutstandingBalance: 620000000, ExposureTier: "Tier 2", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "Komitmen pembayaran angsuran Rp 15jt via autodebet malam ini", NominalCommitment: 15000000, Phone: "087812345678"},
-		{AccountNo: "6019283745", DebtorID: "DBT-006", DebtorName: "PT Sinar Agro Makmur", ProductType: "KMK", CreditLimit: 15000000000, OutstandingBalance: 13800000000, ExposureTier: "Tier 1", OfficerID: "OFF-004", OfficerName: "Dian Sastro", PairingTeam: "Desk 04", CommitmentDate: "2026-09-05", CommitmentStatus: "Melewati Komitmen", Remarks: "Menolak pembayaran karena klaim dispute tagihan. Perlu mediasi legal", Phone: "081901234567"},
-		{AccountNo: "7092837465", DebtorID: "DBT-007", DebtorName: "Agus Pratama", ProductType: "KKM", CreditLimit: 500000000, OutstandingBalance: 410000000, ExposureTier: "Tier 3", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", PairingTeam: "Desk 03", CommitmentDate: "2026-09-12", CommitmentStatus: "Belum Dilaksanakan", Remarks: "Wa terkirim centang duabiru, belum ada balasan dari debitur", Phone: "082123456789"},
-		{AccountNo: "8028374651", DebtorID: "DBT-008", DebtorName: "Rina Kusuma", ProductType: "KPR", CreditLimit: 1800000000, OutstandingBalance: 1450000000, ExposureTier: "Tier 2", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-08", CommitmentStatus: "On Progress/Implementasi", Remarks: "Suami debitur berjanji mengabarkan jadwal pelunasan lusa", Phone: "083890123456"},
-		{AccountNo: "9037465182", DebtorID: "DBT-009", DebtorName: "PT Megah Konstruksi Indonesia", ProductType: "KI", CreditLimit: 12000000000, OutstandingBalance: 9900000000, ExposureTier: "Tier 1", OfficerID: "OFF-001", OfficerName: "Budi Santoso", PairingTeam: "Desk 01", CommitmentDate: "2026-09-06", CommitmentStatus: "Telah Dilaksanakan", Remarks: "Pencairan termin proyek hari ini. Komitmen setor Rp 750jt", NominalCommitment: 750000000, Phone: "081567890123"},
-		{AccountNo: "1147561928", DebtorID: "DBT-010", DebtorName: "Eko Prasetyo", ProductType: "KMK", CreditLimit: 2200000000, OutstandingBalance: 1950000000, ExposureTier: "Tier 2", OfficerID: "OFF-004", OfficerName: "Dian Sastro", PairingTeam: "Desk 04", CommitmentDate: "2026-09-09", CommitmentStatus: "On Progress/Implementasi", Remarks: "Debitur menunggu pelunasan piutang usaha minggu depan", Phone: "081789012345"},
-		{AccountNo: "2256192837", DebtorID: "DBT-011", DebtorName: "Maya Indah", ProductType: "KKM", CreditLimit: 250000000, OutstandingBalance: 180000000, ExposureTier: "Tier 3", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", PairingTeam: "Desk 03", CommitmentDate: "2026-09-15", CommitmentStatus: "On Progress/Implementasi", Remarks: "Dokumen keringanan bunga telah diserahkan ke cabang pembantu", Phone: "082290123456"},
-		{AccountNo: "3361928374", DebtorID: "DBT-012", DebtorName: "Fajri Ramadhan", ProductType: "KPR", CreditLimit: 950000000, OutstandingBalance: 820000000, ExposureTier: "Tier 3", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "Setor denda dan cicilan via ATM sebelum pukul 21.00 WIB", Phone: "085701234567"},
+		{AccountNo: "1029384756", DebtorID: "DBT-001", Cif: "11002022001", DebtorName: "PT Nusantara Jaya Abadi", ProductType: "KMK", CreditLimit: 5000000000, OutstandingBalance: 4250000000, ExposureTier: "Tier 1", OfficerID: "OFF-001", OfficerName: "Budi Santoso", PairingTeam: "Desk 01", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "Debitur berjanji melunasi cicilan Rp 250jt via transfer sore ini", NominalCommitment: 250000000, Phone: "081298765432"},
+		{AccountNo: "2093847561", DebtorID: "DBT-002", Cif: "11002022002", DebtorName: "Hendra Wijaya", ProductType: "KPR", CreditLimit: 1200000000, OutstandingBalance: 980000000, ExposureTier: "Tier 2", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-07", CommitmentStatus: "On Progress/Implementasi", Remarks: "Debitur meminta menghubungi kembali besok jam 10:00 WIB", Phone: "081387654321"},
+		{AccountNo: "3084756192", DebtorID: "DBT-003", Cif: "11002022003", DebtorName: "CV Karya Utama Mandiri", ProductType: "KI", CreditLimit: 8500000000, OutstandingBalance: 7100000000, ExposureTier: "Tier 1", OfficerID: "OFF-001", OfficerName: "Budi Santoso", PairingTeam: "Desk 01", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "SP-2 telah dikirimkan. Debitur bersedia setor Rp 500jt", NominalCommitment: 500000000, Phone: "081123456789"},
+		{AccountNo: "4075619283", DebtorID: "DBT-004", Cif: "11002022004", DebtorName: "Dewi Lestari", ProductType: "KKM", CreditLimit: 350000000, OutstandingBalance: 210000000, ExposureTier: "Tier 3", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", PairingTeam: "Desk 03", CommitmentDate: "2026-09-10", CommitmentStatus: "On Progress/Implementasi", Remarks: "Pengajuan perpanjangan tenor kredit sedang dalam review komite", Phone: "085678901234"},
+		{AccountNo: "5061928374", DebtorID: "DBT-005", Cif: "11002022005", DebtorName: "Bambang Sukoco", ProductType: "KPR", CreditLimit: 750000000, OutstandingBalance: 620000000, ExposureTier: "Tier 2", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "Komitmen pembayaran angsuran Rp 15jt via autodebet malam ini", NominalCommitment: 15000000, Phone: "087812345678"},
+		{AccountNo: "6019283745", DebtorID: "DBT-006", Cif: "11002022006", DebtorName: "PT Sinar Agro Makmur", ProductType: "KMK", CreditLimit: 15000000000, OutstandingBalance: 13800000000, ExposureTier: "Tier 1", OfficerID: "OFF-004", OfficerName: "Dian Sastro", PairingTeam: "Desk 04", CommitmentDate: "2026-09-05", CommitmentStatus: "Melewati Komitmen", Remarks: "Menolak pembayaran karena klaim dispute tagihan. Perlu mediasi legal", Phone: "081901234567"},
+		{AccountNo: "7092837465", DebtorID: "DBT-007", Cif: "11002022007", DebtorName: "Agus Pratama", ProductType: "KKM", CreditLimit: 500000000, OutstandingBalance: 410000000, ExposureTier: "Tier 3", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", PairingTeam: "Desk 03", CommitmentDate: "2026-09-12", CommitmentStatus: "Belum Dilaksanakan", Remarks: "Wa terkirim centang duabiru, belum ada balasan dari debitur", Phone: "082123456789"},
+		{AccountNo: "8028374651", DebtorID: "DBT-008", Cif: "11002022008", DebtorName: "Rina Kusuma", ProductType: "KPR", CreditLimit: 1800000000, OutstandingBalance: 1450000000, ExposureTier: "Tier 2", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-08", CommitmentStatus: "On Progress/Implementasi", Remarks: "Suami debitur berjanji mengabarkan jadwal pelunasan lusa", Phone: "083890123456"},
+		{AccountNo: "9037465182", DebtorID: "DBT-009", Cif: "11002022009", DebtorName: "PT Megah Konstruksi Indonesia", ProductType: "KI", CreditLimit: 12000000000, OutstandingBalance: 9900000000, ExposureTier: "Tier 1", OfficerID: "OFF-001", OfficerName: "Budi Santoso", PairingTeam: "Desk 01", CommitmentDate: "2026-09-06", CommitmentStatus: "Telah Dilaksanakan", Remarks: "Pencairan termin proyek hari ini. Komitmen setor Rp 750jt", NominalCommitment: 750000000, Phone: "081567890123"},
+		{AccountNo: "1147561928", DebtorID: "DBT-010", Cif: "11002022010", DebtorName: "Eko Prasetyo", ProductType: "KMK", CreditLimit: 2200000000, OutstandingBalance: 1950000000, ExposureTier: "Tier 2", OfficerID: "OFF-004", OfficerName: "Dian Sastro", PairingTeam: "Desk 04", CommitmentDate: "2026-09-09", CommitmentStatus: "On Progress/Implementasi", Remarks: "Debitur menunggu pelunasan piutang usaha minggu depan", Phone: "081789012345"},
+		{AccountNo: "2256192837", DebtorID: "DBT-011", Cif: "11002022011", DebtorName: "Maya Indah", ProductType: "KKM", CreditLimit: 250000000, OutstandingBalance: 180000000, ExposureTier: "Tier 3", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", PairingTeam: "Desk 03", CommitmentDate: "2026-09-15", CommitmentStatus: "On Progress/Implementasi", Remarks: "Dokumen keringanan bunga telah diserahkan ke cabang pembantu", Phone: "082290123456"},
+		{AccountNo: "3361928374", DebtorID: "DBT-012", Cif: "11002022012", DebtorName: "Fajri Ramadhan", ProductType: "KPR", CreditLimit: 950000000, OutstandingBalance: 820000000, ExposureTier: "Tier 3", OfficerID: "OFF-002", OfficerName: "Siti Rahma", PairingTeam: "Desk 02", CommitmentDate: "2026-09-06", CommitmentStatus: "On Progress/Implementasi", Remarks: "Setor denda dan cicilan via ATM sebelum pukul 21.00 WIB", Phone: "085701234567"},
 	}
 	return &inMemoryDebtorRepo{debtors: initial}
 }
@@ -77,9 +77,12 @@ func (r *inMemoryDebtorRepo) GetMonitoringData(ctx context.Context, filter domai
 	var filtered []domain.DebtorAccount
 	for _, d := range r.debtors {
 		if filter.Search != "" {
-			if !containsInsensitive(d.DebtorName, filter.Search) && !containsInsensitive(d.AccountNo, filter.Search) {
+			if !containsInsensitive(d.DebtorName, filter.Search) && !containsInsensitive(d.AccountNo, filter.Search) && !containsInsensitive(d.Cif, filter.Search) {
 				continue
 			}
+		}
+		if filter.Cif != "" && !strings.EqualFold(d.Cif, filter.Cif) {
+			continue
 		}
 		if filter.Tier != "" && filter.Tier != "ALL" && d.ExposureTier != filter.Tier {
 			continue
@@ -105,6 +108,8 @@ func (r *inMemoryDebtorRepo) GetMonitoringData(ctx context.Context, filter domai
 			switch filter.SortBy {
 			case "noRekening", "account_no":
 				valI, valJ = filtered[i].AccountNo, filtered[j].AccountNo
+			case "cif":
+				valI, valJ = filtered[i].Cif, filtered[j].Cif
 			case "namaDebitur", "debtor_name":
 				valI, valJ = filtered[i].DebtorName, filtered[j].DebtorName
 			case "tierEksposur", "exposure_tier":
@@ -220,19 +225,23 @@ type inMemoryCommitmentRepo struct {
 func NewInMemoryCommitmentRepository() repository.CommitmentRepository {
 	now := time.Now()
 	initial := []domain.CollectionCommitment{
-		{ID: "c101", AccountNo: "1029384756", CommitmentDate: "2026-09-06", OfficerID: "OFF-001", OfficerName: "Budi Santoso", OfficerPairID: "OFF-002", OfficerPairName: "Desk 01", Status: "On Progress/Implementasi", Remarks: "Debitur berjanji melunasi cicilan Rp 250jt via transfer sore ini", Nominal: 250000000, Reason: "On Progress/Implementasi", CreditLimit: 5000000000, OutstandingBalance: 4250000000, ExposureTier: "Tier 1", Product: "KMK", CreatedAt: now, UpdatedAt: now},
-		{ID: "c102", AccountNo: "2093847561", CommitmentDate: "2026-09-07", OfficerID: "OFF-002", OfficerName: "Siti Rahma", OfficerPairID: "OFF-001", OfficerPairName: "Desk 02", Status: "On Progress/Implementasi", Remarks: "Debitur meminta menghubungi kembali besok jam 10:00 WIB", Reason: "On Progress/Implementasi", CreditLimit: 1200000000, OutstandingBalance: 980000000, ExposureTier: "Tier 2", Product: "KPR", CreatedAt: now, UpdatedAt: now},
-		{ID: "c103", AccountNo: "3084756192", CommitmentDate: "2026-09-06", OfficerID: "OFF-001", OfficerName: "Budi Santoso", OfficerPairID: "OFF-002", OfficerPairName: "Desk 01", Status: "On Progress/Implementasi", Remarks: "SP-2 telah dikirimkan. Debitur bersedia setor Rp 500jt", Nominal: 500000000, Reason: "On Progress/Implementasi", CreditLimit: 8500000000, OutstandingBalance: 7100000000, ExposureTier: "Tier 1", Product: "KI", CreatedAt: now, UpdatedAt: now},
-		{ID: "c104", AccountNo: "4075619283", CommitmentDate: "2026-09-10", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", OfficerPairID: "OFF-004", OfficerPairName: "Desk 03", Status: "On Progress/Implementasi", Remarks: "Pengajuan perpanjangan tenor kredit sedang dalam review komite", Reason: "On Progress/Implementasi", CreditLimit: 350000000, OutstandingBalance: 210000000, ExposureTier: "Tier 3", Product: "KKM", CreatedAt: now, UpdatedAt: now},
-		{ID: "c105", AccountNo: "5061928374", CommitmentDate: "2026-09-06", OfficerID: "OFF-002", OfficerName: "Siti Rahma", OfficerPairID: "OFF-001", OfficerPairName: "Desk 02", Status: "On Progress/Implementasi", Remarks: "Komitmen pembayaran angsuran Rp 15jt via autodebet malam ini", Nominal: 15000000, Reason: "On Progress/Implementasi", CreditLimit: 750000000, OutstandingBalance: 620000000, ExposureTier: "Tier 2", Product: "KPR", CreatedAt: now, UpdatedAt: now},
+		{ID: "c101", AccountNo: "1029384756", Cif: "11002022001", CommitmentDate: "2026-09-06", OfficerID: "OFF-001", OfficerName: "Budi Santoso", OfficerPairID: "OFF-002", OfficerPairName: "Desk 01", Status: "On Progress/Implementasi", Remarks: "Debitur berjanji melunasi cicilan Rp 250jt via transfer sore ini", Nominal: 250000000, Reason: "On Progress/Implementasi", CreditLimit: 5000000000, OutstandingBalance: 4250000000, ExposureTier: "Tier 1", Product: "KMK", CreatedAt: now, UpdatedAt: now},
+		{ID: "c102", AccountNo: "2093847561", Cif: "11002022002", CommitmentDate: "2026-09-07", OfficerID: "OFF-002", OfficerName: "Siti Rahma", OfficerPairID: "OFF-001", OfficerPairName: "Desk 02", Status: "On Progress/Implementasi", Remarks: "Debitur meminta menghubungi kembali besok jam 10:00 WIB", Reason: "On Progress/Implementasi", CreditLimit: 1200000000, OutstandingBalance: 980000000, ExposureTier: "Tier 2", Product: "KPR", CreatedAt: now, UpdatedAt: now},
+		{ID: "c103", AccountNo: "3084756192", Cif: "11002022003", CommitmentDate: "2026-09-06", OfficerID: "OFF-001", OfficerName: "Budi Santoso", OfficerPairID: "OFF-002", OfficerPairName: "Desk 01", Status: "On Progress/Implementasi", Remarks: "SP-2 telah dikirimkan. Debitur bersedia setor Rp 500jt", Nominal: 500000000, Reason: "On Progress/Implementasi", CreditLimit: 8500000000, OutstandingBalance: 7100000000, ExposureTier: "Tier 1", Product: "KI", CreatedAt: now, UpdatedAt: now},
+		{ID: "c104", AccountNo: "4075619283", Cif: "11002022004", CommitmentDate: "2026-09-10", OfficerID: "OFF-003", OfficerName: "Ahmad Dahlan", OfficerPairID: "OFF-004", OfficerPairName: "Desk 03", Status: "On Progress/Implementasi", Remarks: "Pengajuan perpanjangan tenor kredit sedang dalam review komite", Reason: "On Progress/Implementasi", CreditLimit: 350000000, OutstandingBalance: 210000000, ExposureTier: "Tier 3", Product: "KKM", CreatedAt: now, UpdatedAt: now},
+		{ID: "c105", AccountNo: "5061928374", Cif: "11002022005", CommitmentDate: "2026-09-06", OfficerID: "OFF-002", OfficerName: "Siti Rahma", OfficerPairID: "OFF-001", OfficerPairName: "Desk 02", Status: "On Progress/Implementasi", Remarks: "Komitmen pembayaran angsuran Rp 15jt via autodebet malam ini", Nominal: 15000000, Reason: "On Progress/Implementasi", CreditLimit: 750000000, OutstandingBalance: 620000000, ExposureTier: "Tier 2", Product: "KPR", CreatedAt: now, UpdatedAt: now},
 	}
 	return &inMemoryCommitmentRepo{commitments: initial}
 }
 
 func (r *inMemoryCommitmentRepo) CreateCommitment(ctx context.Context, req domain.CreateCommitmentRequest) (*domain.CollectionCommitment, error) {
+	cifVal := strings.TrimSpace(req.Cif)
+
 	c := domain.CollectionCommitment{
 		ID:                 fmt.Sprintf("c%d", len(r.commitments)+100),
 		AccountNo:          req.AccountNo,
+		Cif:                cifVal,
+		DebtorName:         req.DebtorName,
 		CommitmentDate:     req.CommitmentDate,
 		OfficerID:          req.OfficerID,
 		OfficerPairID:      req.OfficerPairID,
@@ -252,6 +261,8 @@ func (r *inMemoryCommitmentRepo) CreateCommitment(ctx context.Context, req domai
 }
 
 func (r *inMemoryCommitmentRepo) UpdateCommitmentByReason(ctx context.Context, req domain.CreateCommitmentRequest) (*domain.CollectionCommitment, error) {
+	cifVal := strings.TrimSpace(req.Cif)
+
 	for i, c := range r.commitments {
 		if c.AccountNo == req.AccountNo && strings.EqualFold(c.Reason, req.Reason) {
 			r.commitments[i].CommitmentDate = req.CommitmentDate
@@ -260,6 +271,12 @@ func (r *inMemoryCommitmentRepo) UpdateCommitmentByReason(ctx context.Context, r
 			r.commitments[i].Status = req.Status
 			r.commitments[i].Remarks = req.Remarks
 			r.commitments[i].Nominal = req.CreditLimit
+			if cifVal != "" {
+				r.commitments[i].Cif = cifVal
+			}
+			if req.DebtorName != "" {
+				r.commitments[i].DebtorName = req.DebtorName
+			}
 			if req.Product != "" {
 				r.commitments[i].Product = req.Product
 			}
@@ -328,6 +345,9 @@ func (r *inMemoryCommitmentRepo) GetCommitments(ctx context.Context, filter doma
 		if filter.AccountNo != "" && c.AccountNo != filter.AccountNo {
 			continue
 		}
+		if filter.Cif != "" && !strings.EqualFold(c.Cif, filter.Cif) {
+			continue
+		}
 		if filter.Status != "" && filter.Status != "ALL" && !strings.EqualFold(c.Status, filter.Status) {
 			continue
 		}
@@ -348,13 +368,15 @@ func (r *inMemoryCommitmentRepo) GetCommitments(ctx context.Context, filter doma
 		if filter.Search != "" {
 			search := filter.Search
 			match := containsInsensitive(c.AccountNo, search) ||
+				containsInsensitive(c.Cif, search) ||
 				containsInsensitive(c.Status, search) ||
 				containsInsensitive(c.Reason, search) ||
 				containsInsensitive(c.Remarks, search) ||
 				containsInsensitive(c.OfficerName, search) ||
 				containsInsensitive(c.OfficerID, search) ||
 				containsInsensitive(c.Product, search) ||
-				containsInsensitive(c.ExposureTier, search)
+				containsInsensitive(c.ExposureTier, search) ||
+				containsInsensitive(c.DebtorName, search)
 			if !match {
 				continue
 			}
@@ -369,6 +391,8 @@ func (r *inMemoryCommitmentRepo) GetCommitments(ctx context.Context, filter doma
 			switch filter.SortBy {
 			case "account_no", "noRekening":
 				valI, valJ = filtered[i].AccountNo, filtered[j].AccountNo
+			case "cif":
+				valI, valJ = filtered[i].Cif, filtered[j].Cif
 			case "commitment_date", "tglKomitmen":
 				valI, valJ = filtered[i].CommitmentDate, filtered[j].CommitmentDate
 			case "status", "statusKomitmen":
@@ -428,6 +452,8 @@ func (r *inMemoryCommitmentRepo) GetCommitmentByID(ctx context.Context, id strin
 }
 
 func (r *inMemoryCommitmentRepo) UpdateCommitmentByID(ctx context.Context, id string, req domain.UpdateCommitmentRequest) (*domain.CollectionCommitment, error) {
+	cifVal := strings.TrimSpace(req.Cif)
+
 	for i, c := range r.commitments {
 		if c.ID == id || c.AccountNo == id || (req.AccountNo != "" && c.AccountNo == req.AccountNo) {
 			if req.CommitmentDate != "" {
@@ -441,6 +467,9 @@ func (r *inMemoryCommitmentRepo) UpdateCommitmentByID(ctx context.Context, id st
 			}
 			if req.Remarks != "" {
 				r.commitments[i].Remarks = req.Remarks
+			}
+			if cifVal != "" {
+				r.commitments[i].Cif = cifVal
 			}
 			r.commitments[i].Nominal = req.Nominal
 			if req.OfficerID != "" {

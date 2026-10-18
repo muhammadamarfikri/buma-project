@@ -5,6 +5,7 @@ import "time"
 type CollectionCommitment struct {
 	ID                 string    `json:"id"`
 	AccountNo          string    `json:"account_no"`
+	Cif                string    `json:"cif"`
 	DebtorName         string    `json:"debtor_name,omitempty"`
 	CommitmentDate     string    `json:"commitment_date"`
 	OfficerID          string    `json:"officer_id"`
@@ -25,6 +26,7 @@ type CollectionCommitment struct {
 
 type CreateCommitmentRequest struct {
 	AccountNo          string  `json:"account_no" validate:"required"`
+	Cif                string  `json:"cif"`
 	DebtorName         string  `json:"debtor_name"`
 	OfficerID          string  `json:"officer_id"`
 	OfficerPairID      string  `json:"officer_pair_id"`
@@ -40,6 +42,7 @@ type CreateCommitmentRequest struct {
 
 type UpdateCommitmentRequest struct {
 	AccountNo          string  `json:"account_no,omitempty"`
+	Cif                string  `json:"cif,omitempty"`
 	Product            string  `json:"product,omitempty"`
 	CommitmentDate     string  `json:"commitment_date"`
 	Status             string  `json:"status"`
@@ -62,6 +65,7 @@ type CommitmentFilter struct {
 	Page      int    `json:"page"`
 	Limit     int    `json:"limit"`
 	AccountNo string `json:"account_no"`
+	Cif       string `json:"cif"`
 	Status    string `json:"status"`
 	Search    string `json:"search"`
 	Tier      string `json:"tier"`

@@ -242,7 +242,17 @@ func (u *commitmentUsecase) ImportCommitmentsFromExcel(ctx context.Context, read
 				continue
 			}
 
-			accountNo := getColValue(row, headerMap, "accountno", "account_no", "accountnumber", "norekening", "norek", "no_rek", "rekening", "account", "cif")
+			cif := getColValue(row, headerMap, "cif", "cifnumber", "cif_number", "nomorcif", "no_cif")
+			if cif == "CIF" {
+				cif = ""
+			}
+
+			accountNo := getColValue(row, headerMap, "accountno", "account_no", "accountnumber", "norekening", "norek", "no_rek", "rekening", "account")
+			if accountNo == "" {
+				if _, hasNoRek := headerMap["norek"]; !hasNoRek {
+					accountNo = cif
+				}
+			}
 			if accountNo == "CIF" || accountNo == "No Rek" || accountNo == "No. Rek" || accountNo == "No Rekening" {
 				continue
 			}
@@ -283,6 +293,7 @@ func (u *commitmentUsecase) ImportCommitmentsFromExcel(ctx context.Context, read
 
 			req := domain.CreateCommitmentRequest{
 				AccountNo:          accountNo,
+				Cif:                cif,
 				DebtorName:         debtorName,
 				OfficerID:          officerID,
 				OfficerPairID:      officerPairID,
@@ -446,7 +457,7 @@ func (u *commitmentUsecase) ExportCommitmentsExcel(ctx context.Context, filter d
 	}
 
 	headers := []string{
-		"No", "ID", "No Rekening", "Nama Debitur", "Produk", "Tier Eksposur",
+		"No", "ID", "CIF", "No Rekening", "Nama Debitur", "Produk", "Tier Eksposur",
 		"Plafon (Rp)", "Baki Debet (Rp)", "Nominal Komitmen (Rp)", "Tgl Komitmen",
 		"Status Komitmen", "Alasan / Komitmen", "Keterangan", "Pengelola (Officer)", "Desk / Pairing",
 	}
@@ -463,19 +474,20 @@ func (u *commitmentUsecase) ExportCommitmentsExcel(ctx context.Context, filter d
 		rowIdx := i + 2
 		_ = f.SetCellValue(sheetName, fmt.Sprintf("A%d", rowIdx), i+1)
 		_ = f.SetCellValue(sheetName, fmt.Sprintf("B%d", rowIdx), c.ID)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("C%d", rowIdx), c.AccountNo)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("D%d", rowIdx), c.DebtorName)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("E%d", rowIdx), c.Product)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("F%d", rowIdx), c.ExposureTier)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("G%d", rowIdx), c.CreditLimit)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("H%d", rowIdx), c.OutstandingBalance)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("I%d", rowIdx), c.Nominal)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("J%d", rowIdx), c.CommitmentDate)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("K%d", rowIdx), c.Status)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("L%d", rowIdx), c.Reason)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("M%d", rowIdx), c.Remarks)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("N%d", rowIdx), c.OfficerName)
-		_ = f.SetCellValue(sheetName, fmt.Sprintf("O%d", rowIdx), c.OfficerPairName)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("C%d", rowIdx), c.Cif)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("D%d", rowIdx), c.AccountNo)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("E%d", rowIdx), c.DebtorName)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("F%d", rowIdx), c.Product)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("G%d", rowIdx), c.ExposureTier)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("H%d", rowIdx), c.CreditLimit)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("I%d", rowIdx), c.OutstandingBalance)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("J%d", rowIdx), c.Nominal)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("K%d", rowIdx), c.CommitmentDate)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("L%d", rowIdx), c.Status)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("M%d", rowIdx), c.Reason)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("N%d", rowIdx), c.Remarks)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("O%d", rowIdx), c.OfficerName)
+		_ = f.SetCellValue(sheetName, fmt.Sprintf("P%d", rowIdx), c.OfficerPairName)
 	}
 
 	buf, err := f.WriteToBuffer()

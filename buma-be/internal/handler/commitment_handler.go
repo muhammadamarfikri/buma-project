@@ -47,6 +47,7 @@ func (h *CommitmentHandler) GetAllCommitments(c echo.Context) error {
 		Page:      page,
 		Limit:     limit,
 		AccountNo: strings.TrimSpace(c.QueryParam("account_no")),
+		Cif:       strings.TrimSpace(c.QueryParam("cif")),
 		Status:    strings.TrimSpace(c.QueryParam("status")),
 		Search:    strings.TrimSpace(c.QueryParam("search")),
 		Tier:      strings.TrimSpace(c.QueryParam("tier")),

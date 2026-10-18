@@ -42,7 +42,7 @@ func TestGenerateCollectionWording(t *testing.T) {
 
 	t.Run("Email Template", func(t *testing.T) {
 		res := GenerateCollectionWording(sampleDebtor, "email", "firm")
-		if !strings.Contains(res, "Subjek: [BUMA COLLECTION]") {
+		if !strings.Contains(res, "COLLECTION] Pemberitahuan Kewajiban Kredit") {
 			t.Errorf("Expected email subject, got: %s", res)
 		}
 	})

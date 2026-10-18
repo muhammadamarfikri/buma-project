@@ -28,6 +28,7 @@ func (h *MonitoringHandler) GetMonitoring(c echo.Context) error {
 		Page:        page,
 		Limit:       limit,
 		Search:      strings.TrimSpace(c.QueryParam("search")),
+		Cif:         strings.TrimSpace(c.QueryParam("cif")),
 		Tier:        strings.TrimSpace(c.QueryParam("tier")),
 		OfficerID:   strings.TrimSpace(c.QueryParam("manager_id")), // supports manager_id or officer_id
 		OfficerName: strings.TrimSpace(c.QueryParam("pengelola")),
